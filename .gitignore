@@ -1,0 +1,4 @@
+__pycache__
+/dist/
+/tag_publish/node_modules/
+/.mypy_cache/

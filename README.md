@@ -1,0 +1,169 @@
+# Tag Publish
+
+## Publishing
+
+The main goals of Tag Publish offer the commands to publish the project,
+see the [documentation](https://github.com/camptocamp/c2cciutils/wiki/Publishing).
+
+## New version
+
+To create a new minor version you just should run `tag-publish-new --version=<version>`.
+
+This will create the stabilization branch and will create a new pull request to update
+the `SECURITY.md` file and the Renovate configuration.
+
+This will also create the tags for the backport.
+
+You are welcome to run `tag-publish-new --help` to see what's it's done.
+
+Note that it didn't create a tag, you should do it manually.
+
+To create a patch version you should just create tag.
+
+## SECURITY.md
+
+The `SECURITY.md` file should contain the security policy of the repository, especially the end of
+support dates.
+
+For compatibility with [`security.md`](https://github.com/sbrunner/security.md/) it should contain an array
+with at least the columns `Version` and `Supported Until`. The `Version` column will contain the concerned
+version.
+The `Supported Until` will contain the date of end of support `dd/mm/yyyy`.
+It can also contain the following sentences:
+
+- `Unsupported`: no longer supported => no audit, no rebuild.
+- `Best effort`: the support is ended, it is still rebuilt and audited, but this can be stopped without any notice.
+- `To be defined`: not yet released or the date will be set related of another project release date (like for GeoMapFish).
+
+See also [GitHub Documentation](https://docs.github.com/en/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)
+
+## Publishing
+
+### To pypi
+
+The config is like this:
+
+```yaml
+versions:
+  # List of kinds of versions you want to publish, that can be:
+  # rebuild (specified with --type),
+  # version_tag, version_branch, feature_branch, feature_tag (for pull request)
+```
+
+It we have a `setup.py` file, we will be in legacy mode:
+When publishing, the version computed from arguments or `GITHUB_REF` is put in environment variable `VERSION`, thus you should use it in `setup.py`, example:
+
+```python
+VERSION = os.environ.get("VERSION", "1.0.0")
+```
+
+Also we consider that we use `poetry` with [poetry-dynamic-versioning](https://pypi.org/project/poetry-dynamic-versioning/) to manage the version, and [poetry-plugin-tweak-dependencies-version](https://pypi.org/project/poetry-plugin-tweak-dependencies-version/) to manage the dependencies versions.
+
+Example of configuration:
+
+```toml
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+pattern = "^(?P<base>\\d+(\\.\\d+)*)"
+format-jinja = """
+{%- if env.get("VERSION_TYPE") == "version_branch" -%}
+{{serialize_pep440(bump_version(base, 1 if env.get("IS_MASTER") == "TRUE" else 2), dev=distance)}}
+{%- elif distance == 0 -%}
+{{serialize_pep440(base)}}
+{%- else -%}
+{{serialize_pep440(bump_version(base), dev=distance)}}
+{%- endif -%}
+"""
+
+```
+
+Note that we can access to the environment variables `VERSION`,`VERSION_TYPE` and `IS_MASTER`.
+
+Then by default:
+
+- Tag with `1.2.3` => release `1.2.3`
+- Commit on feature branch just do a validation
+- Commit on `master` branch after the tag 1.3.0 => release `1.4.0.dev1`
+- Commit on `1.3` branch after the tag 1.3.0 => release `1.3.1.dev1`
+
+#### Authentication
+
+If the file `~/.pypirc` exists we consider that we ar already logged in also
+we will do the login with the `pypi` server with OpenID Connect (OIDC).
+
+The OIDC login is recommended because it didn't needs any additional secrets,
+but it need some configuration on pypi in the package,
+see the [GitHub Documentation](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi#adding-the-identity-provider-to-pypi).
+
+#### Integration if the package directly in a Docker image
+
+To make it working in the `Dockerfile` you should have in the `poetry` stage:
+
+```Dockerfile
+ENV POETRY_DYNAMIC_VERSIONING_BYPASS=dev
+RUN poetry export --extras=checks --extras=publish --output=requirements.txt \
+    && poetry export --with=dev --output=requirements-dev.txt
+```
+
+And in the `run` stage
+
+```Dockerfile
+ARG VERSION=dev
+RUN --mount=type=cache,target=/root/.cache \
+    POETRY_DYNAMIC_VERSIONING_BYPASS=${VERSION} python3 -m pip install --disable-pip-version-check --no-deps --editable=.
+```
+
+And in the `Makefile`:
+
+```Makefile
+VERSION = $(strip $(shell poetry version --short))
+
+.PHONY: build
+build: ## Build the Docker images
+    docker build --build-arg=VERSION=$(VERSION) --tag=$(GITHUB_REPOSITORY) .
+```
+
+### To Docker registry
+
+The config is like this:
+
+```yaml
+latest: True
+images:
+  - # The base name of the image we want to publish
+    name:
+repository:
+  <internal_name>:
+    # The fqdn name of the server if not Docker hub
+    server:
+    # List of kinds of versions you want to publish, that can be: rebuild (specified using --type),
+    # version_tag, version_branch, feature_branch, feature_tag (for pull request)
+    version:
+    # List of tags we want to publish interpreted with `format(version=version)`
+    # e.g. if you use `{version}-lite` when you publish the version `1.2.3` the source tag
+    # (that should be built by the application build) is `latest-lite`, and it will be published
+    # with the tag `1.2.3-lite`.
+    tags:
+    # If your images are published by different jobs you can separate them in different groups
+    # and publish them with `tag-publish --group=<group>`
+    group:
+```
+
+By default, the last line of the `SECURITY.md` file will be published (`docker`) with the tag
+`latest`. Set `latest` to `False` to disable it.
+
+## Use Renovate to trigger a new build instead of the legacy rebuild
+
+If the `ci/dpkg-versions.yaml` or `.github/dpkg-versions.yaml` file is present, the package list will be updated on publishing.
+
+The versions will be updated by [GHCI](https://github.com/camptocamp/github-app-geo-project/) application.
+
+## Contributing
+
+Install the pre-commit hooks:
+
+```bash
+pip install pre-commit
+pre-commit install --allow-missing-config
+```

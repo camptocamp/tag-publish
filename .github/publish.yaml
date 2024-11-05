@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/camptocamp/tag-publish/master/tag_publish/schema.json
+
+pypi:
+  versions:
+    - version_tag
+    - version_branch
+    - rebuild
