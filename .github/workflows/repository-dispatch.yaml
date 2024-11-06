@@ -1,0 +1,40 @@
+name: Print repository dispatch event
+
+on:
+  repository_dispatch:
+    types:
+      - published
+    inputs:
+      type:
+        description: The type of the event
+        required: true
+      name:
+        description: The package name
+      path:
+        description: The package path
+      version:
+        description: The package version
+      tag:
+        description: The package tag
+      repository:
+        description: The repository name or URL
+      version_type:
+        description: The version type
+        required: true
+
+jobs:
+  print:
+    runs-on: ubuntu-24.04
+    name: Print repository dispatch event
+    timeout-minutes: 10
+
+    steps:
+      - name: Print the event
+        run: |
+          echo "Event type: ${{ github.event.client_payload.type }}"
+          echo "Package name: ${{ github.event.client_payload.name }}"
+          echo "Package path: ${{ github.event.client_payload.path }}"
+          echo "Package version: ${{ github.event.client_payload.version }}"
+          echo "Package tag: ${{ github.event.client_payload.tag }}"
+          echo "Repository: ${{ github.event.client_payload.repository }}"
+          echo "Version type: ${{ github.event.client_payload.version_type }}"

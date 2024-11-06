@@ -7,9 +7,18 @@ import re
 import subprocess  # nosec
 
 import multi_repo_automation as mra
-import ruamel
+import ruamel.yaml
+import security_md
 
-import tag_publish
+
+def _get_default_branch() -> str:
+    """Get the default branch name."""
+    return subprocess.run(
+        ["gh", "repo", "view", "--json", "defaultBranchRef", "--jq", ".defaultBranchRef.name"],
+        stdout=subprocess.PIPE,
+        encoding="utf-8",
+        check=True,
+    ).stdout.strip()
 
 
 def main() -> None:
@@ -54,6 +63,12 @@ regarding the SECURITY.md available on GitHub.
         "--upstream-supported-until",
         help="The date until the version is supported upstream",
     )
+    args_parser.add_argument(
+        "--remote",
+        default="origin",
+        help="The remote to push the branch",
+    )
+
     arguments = args_parser.parse_args()
 
     # Get the repo information e.g.:
@@ -73,13 +88,13 @@ regarding the SECURITY.md available on GitHub.
         check=True,
     ).stdout.strip()
 
+    default_branch = _get_default_branch()
+
     # Checkout the master branch
-    subprocess.run(["git", "checkout", repo.get("master_branch", "master")], check=True)
+    subprocess.run(["git", "checkout", default_branch], check=True)
 
     # Pull it from origin
-    subprocess.run(
-        ["git", "pull", repo.get("remote", "origin"), repo.get("master_branch", "master")], check=True
-    )
+    subprocess.run(["git", "pull", arguments, default_branch], check=True)
 
     # Push it to a new stabilization branch
     if arguments.version:
@@ -104,10 +119,18 @@ regarding the SECURITY.md available on GitHub.
 
     # # # Do the changes for the new version # # #
 
-    remotes = [r for r in mra.run(["git", "remote"], stdout=subprocess.PIPE).stdout.split() if r != ""]
+    remotes = [
+        r
+        for r in subprocess.run(
+            ["git", "remote"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+        ).stdout.split()
+        if r != ""
+    ]
     remote_branches = [
         b.strip()[len("remotes/") :]
-        for b in mra.run(["git", "branch", "--all"], stdout=subprocess.PIPE).stdout.split()
+        for b in subprocess.run(
+            ["git", "branch", "--all"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+        ).stdout.split()
         if b != "" and b.strip().startswith("remotes/")
     ]
     if "upstream" in remotes:
@@ -117,14 +140,14 @@ regarding the SECURITY.md available on GitHub.
     else:
         remote_branches = ["/".join(b.split("/")[1:]) for b in remote_branches]
 
-    config = tag_publish.get_config()
-    branch_re = tag_publish.compile_re(config["version"].get("branch_to_version_re", []))
-    branches_match = [tag_publish.match(b, branch_re) for b in remote_branches]
-    version_branch = {m.groups()[0] if m.groups() else b: b for m, c, b in branches_match if m is not None}
+    if os.path.exists("SECURITY.md"):
+        with open("SECURITY.md", encoding="utf-8") as security_file:
+            security_text = security_file.read()
+            security = security_md.Security(security_text)
 
-    stabilization_branches = [
-        version_branch.get(version, version) for version in mra.get_stabilization_versions(repo)
-    ]
+        stabilization_branches = security.branches()
+    else:
+        stabilization_branches = []
     modified_files = []
 
     if version:
@@ -132,8 +155,8 @@ regarding the SECURITY.md available on GitHub.
 
         if os.path.exists("SECURITY.md"):
             modified_files.append("SECURITY.md")
-            with mra.Edit("SECURITY.md") as security_md:
-                security_md_lines = security_md.data.split("\n")
+            with mra.Edit("SECURITY.md") as security_md_file:
+                security_md_lines = security_md_file.data.split("\n")
                 index = -1
                 for i, line in enumerate(security_md_lines):
                     if line.startswith("| "):
@@ -143,11 +166,11 @@ regarding the SECURITY.md available on GitHub.
                 if arguments.upstream_supported_until:
                     new_line += f" {arguments.upstream_supported_until} |"
 
-                security_md.data = "\n".join(
+                security_md_file.data = "\n".join(
                     [*security_md_lines[: index + 1], new_line, *security_md_lines[index + 1 :]]
                 )
 
-    stabilization_branches_with_master = [*stabilization_branches, repo.get("master_branch", "master")]
+    stabilization_branches_with_master = [*stabilization_branches, default_branch]
 
     for labels in mra.gh_json("label", ["name"], "list"):
         if (
@@ -237,7 +260,8 @@ regarding the SECURITY.md available on GitHub.
     subprocess.run(["git", "checkout", old_branch_name, "--"], check=True)
 
     if url:
-        subprocess.run([mra.get_browser(), url], check=True)
+        pr_number = url.rsplit("/", 1)[-1]
+        mra.gh("browse", pr_number)
     else:
         mra.gh("browse")
 
