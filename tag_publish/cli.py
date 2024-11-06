@@ -5,14 +5,17 @@ The publish script.
 """
 
 import argparse
+import json
 import os
+import os.path
+import random
 import re
 import subprocess  # nosec
 import sys
 from re import Match
 from typing import Optional, cast
 
-import requests
+import application_download.cli
 import security_md
 import yaml
 
@@ -21,8 +24,6 @@ import tag_publish.configuration
 import tag_publish.lib.docker
 import tag_publish.lib.oidc
 import tag_publish.publish
-import tag_publish.scripts.download_applications
-from tag_publish.scripts.trigger_image_update import dispatch
 
 
 def match(tpe: str, base_re: str) -> Optional[Match[str]]:
@@ -86,7 +87,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    config = tag_publish.get_config()
+    github = tag_publish.GH()
+    config = tag_publish.get_config(github)
 
     # Describe the kind of release we do: rebuild (specified with --type), version_tag, version_branch,
     # feature_branch, feature_tag (for pull request)
@@ -166,55 +168,51 @@ def main() -> None:
         else:
             print(f"Create release type {version_type}: {version}")
 
+    github = tag_publish.GH()
+
     success = True
+    published_payload: list[tag_publish.PublishedPayload] = []
+
     pypi_config = cast(
-        tag_publish.configuration.PublishPypiConfig,
-        config.get("publish", {}).get("pypi", {}) if config.get("publish", {}).get("pypi", False) else {},
+        tag_publish.configuration.Pypi,
+        config.get("pypi", {}) if config.get("pypi", False) else {},
     )
     if pypi_config:
         if pypi_config["packages"]:
             tag_publish.lib.oidc.pypi_login()
 
         for package in pypi_config["packages"]:
-            if (
-                package.get("group", tag_publish.configuration.PUBLISH_PIP_PACKAGE_GROUP_DEFAULT)
-                == args.group
-            ):
-                publish = version_type in pypi_config.get("versions", [])
+            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == args.group:
+                publish = version_type in pypi_config.get(
+                    "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
+                )
+                path = package.get("path", tag_publish.configuration.PYPI_PACKAGE_PATH_DEFAULT)
                 if args.dry_run:
-                    print(
-                        f"{'Publishing' if publish else 'Checking'} "
-                        f"'{package.get('path')}' to pypi, skipping (dry run)"
-                    )
+                    print(f"{'Publishing' if publish else 'Checking'} '{path}' to pypi, skipping (dry run)")
                 else:
-                    success &= tag_publish.publish.pip(package, version, version_type, publish)
+                    success &= tag_publish.publish.pip(package, version, version_type, publish, github)
+                    published_payload.append(
+                        {
+                            "type": "pypi",
+                            "path": "path",
+                            "version": version,
+                            "version_type": version_type,
+                        }
+                    )
 
     docker_config = cast(
-        tag_publish.configuration.PublishDockerConfig,
-        config.get("publish", {}).get("docker", {}) if config.get("publish", {}).get("docker", False) else {},
+        tag_publish.configuration.Docker,
+        config.get("docker", {}) if config.get("docker", False) else {},
     )
     if docker_config:
-        full_repo = tag_publish.get_repository()
-        full_repo_split = full_repo.split("/")
-        master_branch, _ = tag_publish.get_master_branch(full_repo_split)
         security_text = ""
         if local:
             with open("SECURITY.md", encoding="utf-8") as security_file:
                 security_text = security_file.read()
+                security = security_md.Security(security_text)
         else:
-            security_response = requests.get(
-                f"https://raw.githubusercontent.com/{full_repo}/{master_branch}/SECURITY.md",
-                headers=tag_publish.add_authorization_header({}),
-                timeout=int(os.environ.get("C2CCIUTILS_TIMEOUT", "30")),
-            )
-            tag_publish.check_response(security_response, False)
-            if security_response.ok:
-                security_text = security_response.text
-            elif security_response.status_code != 404:
-                print(f"::error:: {security_response.status_code} {security_response.text}")
-                sys.exit(1)
+            security = tag_publish.get_security_md(github)
 
-        security = security_md.Security(security_text)
         version_index = security.version_index
         alternate_tag_index = security.alternate_tag_index
 
@@ -247,13 +245,8 @@ def main() -> None:
         images_snyk: set[str] = set()
         versions = args.docker_versions.split(",") if args.docker_versions else [version]
         for image_conf in docker_config.get("images", []):
-            if (
-                image_conf.get("group", tag_publish.configuration.PUBLISH_DOCKER_IMAGE_GROUP_DEFAULT)
-                == args.group
-            ):
-                for tag_config in image_conf.get(
-                    "tags", tag_publish.configuration.PUBLISH_DOCKER_IMAGE_TAGS_DEFAULT
-                ):
+            if image_conf.get("group", tag_publish.configuration.DOCKER_IMAGE_GROUP_DEFAULT) == args.group:
+                for tag_config in image_conf.get("tags", tag_publish.configuration.DOCKER_IMAGE_TAGS_DEFAULT):
                     tag_src = tag_config.format(version="latest")
                     image_source = f"{image_conf['name']}:{tag_src}"
                     images_src.add(image_source)
@@ -277,21 +270,17 @@ def main() -> None:
                             check=True,
                         )
 
-                    tags_calendar = []
                     for name, conf in {
                         **cast(
-                            dict[str, tag_publish.configuration.PublishDockerRepository],
+                            dict[str, tag_publish.configuration.DockerRepository],
                             tag_publish.configuration.DOCKER_REPOSITORY_DEFAULT,
                         ),
                         **docker_config.get("repository", {}),
                     }.items():
                         for docker_version in versions:
-                            tag_dst = tag_config.format(version=docker_version)
-                            if tag_dst not in tags_calendar:
-                                tags_calendar.append(tag_dst)
                             if version_type in conf.get(
                                 "versions",
-                                tag_publish.configuration.PUBLISH_DOCKER_REPOSITORY_VERSIONS_DEFAULT,
+                                tag_publish.configuration.DOCKER_REPOSITORY_VERSIONS_DEFAULT,
                             ):
                                 tags = [
                                     tag_config.format(version=alt_tag)
@@ -306,23 +295,18 @@ def main() -> None:
                                         )
                                 else:
                                     success &= tag_publish.publish.docker(
-                                        conf, name, image_conf, tag_src, tags, images_full
+                                        conf,
+                                        name,
+                                        image_conf,
+                                        tag_src,
+                                        tags,
+                                        images_full,
+                                        version_type,
+                                        published_payload,
                                     )
 
         if args.dry_run:
             sys.exit(0)
-
-        dispatch_config = docker_config.get("dispatch", {})
-        if dispatch_config is not False and images_full:
-            dispatch(
-                dispatch_config.get(
-                    "repository", tag_publish.configuration.DOCKER_DISPATCH_REPOSITORY_DEFAULT
-                ),
-                dispatch_config.get(
-                    "event-type", tag_publish.configuration.DOCKER_DISPATCH_EVENT_TYPE_DEFAULT
-                ),
-                images_full,
-            )
 
         snyk_exec, env = tag_publish.snyk_exec()
         for image in images_snyk:
@@ -333,7 +317,7 @@ def main() -> None:
                 if version_type in ("version_branch", "version_tag"):
                     monitor_args = docker_config.get("snyk", {}).get(
                         "monitor_args",
-                        tag_publish.configuration.PUBLISH_DOCKER_SNYK_MONITOR_ARGS_DEFAULT,
+                        tag_publish.configuration.DOCKER_SNYK_MONITOR_ARGS_DEFAULT,
                     )
                     if monitor_args is not False:
                         subprocess.run(  # pylint: disable=subprocess-run-check
@@ -349,7 +333,7 @@ def main() -> None:
                             env=env,
                         )
                 test_args = docker_config.get("snyk", {}).get(
-                    "test_args", tag_publish.configuration.PUBLISH_DOCKER_SNYK_TEST_ARGS_DEFAULT
+                    "test_args", tag_publish.configuration.DOCKER_SNYK_TEST_ARGS_DEFAULT
                 )
                 snyk_error = False
                 if test_args is not False:
@@ -406,24 +390,23 @@ def main() -> None:
                 success = False
 
     helm_config = cast(
-        tag_publish.configuration.PublishHelmConfig,
-        config.get("publish", {}).get("helm", {}) if config.get("publish", {}).get("helm", False) else {},
+        tag_publish.configuration.HelmConfig,
+        config.get("helm", {}) if config.get("helm", False) else {},
     )
-    if helm_config and helm_config["folders"] and version_type in helm_config.get("versions", []):
-        tag_publish.scripts.download_applications.download_tag_publish_applications("helm/chart-releaser")
+    if (
+        helm_config
+        and helm_config["folders"]
+        and version_type in helm_config.get("versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT)
+    ):
+        application_download.cli.download_application("helm/chart-releaser")
 
-        owner, repo = full_repo_split
+        owner = github.repo.owner.login
+        repo = github.repo.name
         commit_sha = (
             subprocess.run(["git", "rev-parse", "HEAD"], check=True, stdout=subprocess.PIPE)
             .stdout.strip()
             .decode()
         )
-        token = (
-            os.environ["GITHUB_TOKEN"].strip()
-            if "GITHUB_TOKEN" in os.environ
-            else tag_publish.gopass("gs/ci/github/token/gopass")
-        )
-        assert token is not None
         if version_type == "version_branch":
             last_tag = (
                 subprocess.run(
@@ -449,7 +432,36 @@ def main() -> None:
             version = ".".join(versions)
 
         for folder in helm_config["folders"]:
+            token = os.environ["GITHUB_TOKEN"]
             success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
+            published_payload.append(
+                {
+                    "type": "helm",
+                    "path": folder,
+                    "version": version,
+                    "version_type": version_type,
+                }
+            )
+
+    config = tag_publish.get_config(tag_publish.GH())
+
+    for published in published_payload:
+        for dispatch_config in config.get("dispatch", []):
+            repository = dispatch_config.get("repository")
+            event_type = dispatch_config.get(
+                "event-type", tag_publish.configuration.DISPATCH_EVENT_TYPE_DEFAULT
+            )
+
+            id_ = random.randint(1, 100000)  # nosec # noqa: S311
+            published["id"] = id_
+
+            if repository:
+                print(f"Triggering {event_type}:{id_} on {repository} with {json.dumps(published)}")
+                github_repo = github.github.get_repo(repository)
+            else:
+                print(f"Triggering {event_type}:{id_} with {json.dumps(published)}")
+                github_repo = github.repo
+            github_repo.create_repository_dispatch(event_type, published)  # type: ignore[arg-type]
 
     if not success:
         sys.exit(1)

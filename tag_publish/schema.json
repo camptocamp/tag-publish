@@ -6,204 +6,165 @@
   "description": "Tag Publish configuration file",
   "additionalProperties": false,
   "definitions": {
-    "publish_docker": {
-      "title": "Publish Docker",
+    "docker": {
+      "title": "Docker",
       "description": "The configuration used to publish on Docker",
-      "oneOf": [
-        {
-          "title": "Publish Docker config",
-          "description": "The configuration used to publish on Docker",
+      "type": "object",
+      "properties": {
+        "latest": {
+          "description": "Publish the latest version on tag latest",
+          "title": "Docker latest",
+          "default": true,
+          "type": "boolean"
+        },
+        "images": {
+          "description": "List of images to be published",
+          "type": "array",
+          "items": {
+            "title": "Docker image",
+            "type": "object",
+            "properties": {
+              "group": {
+                "description": "The image is in the group, should be used with the --group option of tag-publish script",
+                "title": "Docker image group",
+                "default": "default",
+                "type": "string"
+              },
+              "name": {
+                "description": "The image name",
+                "type": "string"
+              },
+              "tags": {
+                "description": "The tag name, will be formatted with the version=<the version>, the image with version=latest should be present when we call the tag-publish script",
+                "title": "docker image tags",
+                "type": "array",
+                "default": ["{version}"],
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "repository": {
+          "title": "Docker repository",
+          "description": "The repository where we should publish the images",
+          "default": {
+            "github": {
+              "server": "ghcr.io",
+              "versions": ["version_tag", "version_branch", "rebuild"]
+            },
+            "dockerhub": {}
+          },
+          "type": "object",
+          "additionalProperties": {
+            "title": "Docker repository",
+            "type": "object",
+            "properties": {
+              "server": {
+                "description": "The server URL",
+                "type": "string"
+              },
+              "versions": {
+                "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
+                "title": "Docker repository versions",
+                "type": "array",
+                "default": ["version_tag", "version_branch", "rebuild", "feature_branch"],
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "snyk": {
+          "description": "Checks the published images with Snyk",
           "type": "object",
           "properties": {
-            "latest": {
-              "description": "Publish the latest version on tag latest",
-              "title": "Publish Docker latest",
-              "default": true,
-              "type": "boolean"
-            },
-            "images": {
-              "description": "List of images to be published",
-              "type": "array",
-              "items": {
-                "title": "Publish Docker image",
-                "type": "object",
-                "properties": {
-                  "group": {
-                    "description": "The image is in the group, should be used with the --group option of tag-publish script",
-                    "title": "Publish Docker image group",
-                    "default": "default",
-                    "type": "string"
-                  },
-                  "name": {
-                    "description": "The image name",
-                    "type": "string"
-                  },
-                  "tags": {
-                    "description": "The tag name, will be formatted with the version=<the version>, the image with version=latest should be present when we call the tag-publish script",
-                    "title": "publish docker image tags",
-                    "type": "array",
-                    "default": ["{version}"],
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            },
-            "repository": {
-              "title": "Docker repository",
-              "description": "The repository where we should publish the images",
-              "default": {
-                "github": {
-                  "server": "ghcr.io",
-                  "versions": ["version_tag", "version_branch", "rebuild"]
-                },
-                "dockerhub": {}
-              },
-              "type": "object",
-              "additionalProperties": {
-                "title": "Publish Docker repository",
-                "type": "object",
-                "properties": {
-                  "server": {
-                    "description": "The server URL",
-                    "type": "string"
-                  },
-                  "versions": {
-                    "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
-                    "title": "Publish Docker repository versions",
-                    "type": "array",
-                    "default": ["version_tag", "version_branch", "rebuild", "feature_branch"],
-                    "items": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            },
-            "dispatch": {
-              "description": "Send a dispatch event to an other repository",
-              "default": {},
+            "monitor_args": {
+              "description": "The arguments to pass to the Snyk container monitor command",
+              "title": "Docker Snyk monitor args",
+              "default": ["--app-vulns"],
               "oneOf": [
                 {
-                  "type": "object",
-                  "title": "dispatch config",
-                  "description": "Send a dispatch event to an other repository",
-                  "properties": {
-                    "repository": {
-                      "title": "Docker dispatch repository",
-                      "description": "The repository name to be triggered",
-                      "default": "camptocamp/argocd-gs-gmf-apps",
-                      "type": "string"
-                    },
-                    "event-type": {
-                      "title": "Docker dispatch event type",
-                      "description": "The event type to be triggered",
-                      "default": "image-update",
-                      "type": "string"
-                    }
+                  "type": "array",
+                  "items": {
+                    "type": "string"
                   }
                 },
                 { "const": false }
               ]
             },
-            "snyk": {
-              "description": "Checks the published images with Snyk",
-              "type": "object",
-              "properties": {
-                "monitor_args": {
-                  "description": "The arguments to pass to the Snyk container monitor command",
-                  "title": "Publish Docker Snyk monitor args",
-                  "default": ["--app-vulns"],
-                  "oneOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    { "const": false }
-                  ]
-                },
-                "test_args": {
-                  "description": "The arguments to pass to the Snyk container test command",
-                  "title": "Publish Docker Snyk test args",
-                  "default": ["--app-vulns", "--severity-threshold=critical"],
-                  "oneOf": [
-                    {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    { "const": false }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        { "const": false }
-      ]
-    },
-    "publish_pypi": {
-      "title": "publish pypi",
-      "description": "Configuration to publish on pypi",
-      "default": {},
-      "oneOf": [
-        {
-          "title": "publish pypi config",
-          "description": "Configuration to publish on pypi",
-          "type": "object",
-          "properties": {
-            "packages": {
-              "description": "The configuration of packages that will be published",
-              "type": "array",
-              "items": {
-                "title": "publish pypi package",
-                "description": "The configuration of package that will be published",
-                "type": "object",
-                "properties": {
-                  "group": {
-                    "description": "The image is in the group, should be used with the --group option of tag-publish script",
-                    "title": "Publish pip package group",
-                    "default": "default",
+            "test_args": {
+              "description": "The arguments to pass to the Snyk container test command",
+              "title": "Docker Snyk test args",
+              "default": ["--app-vulns", "--severity-threshold=critical"],
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
                     "type": "string"
-                  },
-                  "path": {
-                    "description": "The path of the pypi package",
-                    "type": "string"
-                  },
-                  "build_command": {
-                    "description": "The command used to do the build",
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
                   }
-                }
-              }
-            },
-            "versions": {
-              "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
-              "type": "array",
-              "items": {
+                },
+                { "const": false }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "pypi": {
+      "title": "pypi",
+      "description": "Configuration to publish on pypi",
+      "type": "object",
+      "properties": {
+        "packages": {
+          "description": "The configuration of packages that will be published",
+          "type": "array",
+          "items": {
+            "title": "pypi package",
+            "description": "The configuration of package that will be published",
+            "type": "object",
+            "properties": {
+              "group": {
+                "description": "The image is in the group, should be used with the --group option of tag-publish script",
+                "title": "pip package group",
+                "default": "default",
                 "type": "string"
+              },
+              "path": {
+                "title": "pypi package path",
+                "description": "The path of the pypi package",
+                "type": "string",
+                "default": "."
+              },
+              "build_command": {
+                "description": "The command used to do the build",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
               }
             }
           }
         },
-        {
-          "const": false
+        "versions": {
+          "title": "pypi versions",
+          "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
+          "type": "array",
+          "default": ["version_tag"],
+          "items": {
+            "type": "string"
+          }
         }
-      ]
+      }
     },
-    "publish_helm": {
-      "title": "publish helm",
+    "helm": {
+      "title": "helm",
       "description": "Configuration to publish Helm charts on GitHub release",
       "oneOf": [
         {
-          "title": "publish helm config",
+          "title": "helm config",
           "description": "Configuration to publish on Helm charts on GitHub release",
           "type": "object",
           "properties": {
@@ -215,8 +176,10 @@
               }
             },
             "versions": {
+              "title": "helm versions",
               "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
               "type": "array",
+              "default": ["version_tag"],
               "items": {
                 "type": "string"
               }
@@ -257,8 +220,34 @@
         "tag_to_version_re": { "$ref": "#/definitions/version_transform" }
       }
     },
-    "docker": { "$ref": "#/definitions/publish_docker" },
-    "pypi": { "$ref": "#/definitions/publish_pypi" },
-    "helm": { "$ref": "#/definitions/publish_helm" }
+    "docker": { "$ref": "#/definitions/docker" },
+    "pypi": { "$ref": "#/definitions/pypi" },
+    "helm": { "$ref": "#/definitions/helm" },
+    "dispatch": {
+      "title": "Dispatch",
+      "type": "array",
+      "default": [{}],
+
+      "items": {
+        "title": "dispatch config",
+        "description": "Send a dispatch event to an other repository",
+        "default": {},
+        "type": "object",
+        "properties": {
+          "repository": {
+            "title": "Dispatch repository",
+            "description": "The repository name to be triggered",
+            "default": "camptocamp/argocd-gs-gmf-apps",
+            "type": "string"
+          },
+          "event-type": {
+            "title": "Dispatch event type",
+            "description": "The event type to be triggered",
+            "default": "published",
+            "type": "string"
+          }
+        }
+      }
+    }
   }
 }

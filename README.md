@@ -37,7 +37,11 @@ It can also contain the following sentences:
 
 See also [GitHub Documentation](https://docs.github.com/en/github/managing-security-vulnerabilities/adding-a-security-policy-to-your-repository)
 
-## Publishing
+## Configuration
+
+### Dry run
+
+Dry run publish: `GITHUB_REF=... c2cciutils-publish --dry-run ...`
 
 ### To pypi
 

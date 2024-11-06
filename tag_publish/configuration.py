@@ -19,57 +19,84 @@ class Configuration(TypedDict, total=False):
     The version configurations
     """
 
-    docker: "PublishDocker"
+    docker: "Docker"
     """
-    Publish Docker.
+    Docker.
 
     The configuration used to publish on Docker
-
-    Aggregation type: oneOf
-    Subtype: "PublishDockerConfig"
     """
 
-    pypi: "PublishPypi"
+    pypi: "Pypi"
     """
-    publish pypi.
+    pypi.
 
     Configuration to publish on pypi
-
-    default:
-      {}
-
-    Aggregation type: oneOf
-    Subtype: "PublishPypiConfig"
     """
 
-    helm: "PublishHelm"
+    helm: "Helm"
     """
-    publish helm.
+    helm.
 
     Configuration to publish Helm charts on GitHub release
 
     Aggregation type: oneOf
-    Subtype: "PublishHelmConfig"
+    Subtype: "HelmConfig"
+    """
+
+    dispatch: List["DispatchConfig"]
+    """
+    Dispatch.
+
+    default:
+      - {}
     """
 
 
 DISPATCH_CONFIG_DEFAULT: Dict[str, Any] = {}
-""" Default value of the field path 'Publish Docker config dispatch oneof0' """
+""" Default value of the field path 'Dispatch item' """
 
 
-DOCKER_DISPATCH_EVENT_TYPE_DEFAULT = "image-update"
+DISPATCH_DEFAULT = [{}]
+""" Default value of the field path 'configuration dispatch' """
+
+
+DISPATCH_EVENT_TYPE_DEFAULT = "published"
 """ Default value of the field path 'dispatch config event-type' """
 
 
-DOCKER_DISPATCH_REPOSITORY_DEFAULT = "camptocamp/argocd-gs-gmf-apps"
+DISPATCH_REPOSITORY_DEFAULT = "camptocamp/argocd-gs-gmf-apps"
 """ Default value of the field path 'dispatch config repository' """
+
+
+DOCKER_IMAGE_GROUP_DEFAULT = "default"
+""" Default value of the field path 'Docker image group' """
+
+
+DOCKER_IMAGE_TAGS_DEFAULT = ["{version}"]
+""" Default value of the field path 'Docker image tags' """
+
+
+DOCKER_LATEST_DEFAULT = True
+""" Default value of the field path 'Docker latest' """
 
 
 DOCKER_REPOSITORY_DEFAULT = {
     "github": {"server": "ghcr.io", "versions": ["version_tag", "version_branch", "rebuild"]},
     "dockerhub": {},
 }
-""" Default value of the field path 'Publish Docker config repository' """
+""" Default value of the field path 'Docker repository' """
+
+
+DOCKER_REPOSITORY_VERSIONS_DEFAULT = ["version_tag", "version_branch", "rebuild", "feature_branch"]
+""" Default value of the field path 'Docker repository versions' """
+
+
+DOCKER_SNYK_MONITOR_ARGS_DEFAULT = ["--app-vulns"]
+""" Default value of the field path 'Docker snyk monitor_args' """
+
+
+DOCKER_SNYK_TEST_ARGS_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
+""" Default value of the field path 'Docker snyk test_args' """
 
 
 # | dispatch config.
@@ -81,90 +108,43 @@ DOCKER_REPOSITORY_DEFAULT = {
 DispatchConfig = TypedDict(
     "DispatchConfig",
     {
-        # | Docker dispatch repository.
+        # | Dispatch repository.
         # |
         # | The repository name to be triggered
         # |
         # | default: camptocamp/argocd-gs-gmf-apps
         "repository": str,
-        # | Docker dispatch event type.
+        # | Dispatch event type.
         # |
         # | The event type to be triggered
         # |
-        # | default: image-update
+        # | default: published
         "event-type": str,
     },
     total=False,
 )
 
 
-PUBLISH_DOCKER_IMAGE_GROUP_DEFAULT = "default"
-""" Default value of the field path 'Publish Docker image group' """
-
-
-PUBLISH_DOCKER_IMAGE_TAGS_DEFAULT = ["{version}"]
-""" Default value of the field path 'Publish Docker image tags' """
-
-
-PUBLISH_DOCKER_LATEST_DEFAULT = True
-""" Default value of the field path 'Publish Docker config latest' """
-
-
-PUBLISH_DOCKER_REPOSITORY_VERSIONS_DEFAULT = ["version_tag", "version_branch", "rebuild", "feature_branch"]
-""" Default value of the field path 'Publish Docker repository versions' """
-
-
-PUBLISH_DOCKER_SNYK_MONITOR_ARGS_DEFAULT = ["--app-vulns"]
-""" Default value of the field path 'Publish Docker config snyk monitor_args' """
-
-
-PUBLISH_DOCKER_SNYK_TEST_ARGS_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
-""" Default value of the field path 'Publish Docker config snyk test_args' """
-
-
-PUBLISH_PIP_PACKAGE_GROUP_DEFAULT = "default"
-""" Default value of the field path 'publish pypi package group' """
-
-
-PUBLISH_PYPI_CONFIG_DEFAULT: Dict[str, Any] = {}
-""" Default value of the field path 'publish pypi oneof0' """
-
-
-PUBLISH_PYPI_DEFAULT: Dict[str, Any] = {}
-""" Default value of the field path 'publish_pypi' """
-
-
-PublishDocker = Union["PublishDockerConfig", Literal[False]]
-"""
-Publish Docker.
-
-The configuration used to publish on Docker
-
-Aggregation type: oneOf
-Subtype: "PublishDockerConfig"
-"""
-
-
-class PublishDockerConfig(TypedDict, total=False):
+class Docker(TypedDict, total=False):
     """
-    Publish Docker config.
+    Docker.
 
     The configuration used to publish on Docker
     """
 
     latest: bool
     """
-    Publish Docker latest.
+    Docker latest.
 
     Publish the latest version on tag latest
 
     default: True
     """
 
-    images: List["PublishDockerImage"]
+    images: List["DockerImage"]
     """ List of images to be published """
 
-    repository: Dict[str, "PublishDockerRepository"]
+    repository: Dict[str, "DockerRepository"]
     """
     Docker repository.
 
@@ -180,27 +160,16 @@ class PublishDockerConfig(TypedDict, total=False):
         - rebuild
     """
 
-    dispatch: Union["DispatchConfig", "_PublishDockerConfigDispatchOneof1"]
-    """
-    Send a dispatch event to an other repository
-
-    default:
-      {}
-
-    Aggregation type: oneOf
-    Subtype: "DispatchConfig"
-    """
-
-    snyk: "_PublishDockerConfigSnyk"
+    snyk: "_DockerSnyk"
     """ Checks the published images with Snyk """
 
 
-class PublishDockerImage(TypedDict, total=False):
-    """Publish Docker image."""
+class DockerImage(TypedDict, total=False):
+    """Docker image."""
 
     group: str
     """
-    Publish Docker image group.
+    Docker image group.
 
     The image is in the group, should be used with the --group option of tag-publish script
 
@@ -212,7 +181,7 @@ class PublishDockerImage(TypedDict, total=False):
 
     tags: List[str]
     """
-    publish docker image tags.
+    docker image tags.
 
     The tag name, will be formatted with the version=<the version>, the image with version=latest should be present when we call the tag-publish script
 
@@ -221,15 +190,15 @@ class PublishDockerImage(TypedDict, total=False):
     """
 
 
-class PublishDockerRepository(TypedDict, total=False):
-    """Publish Docker repository."""
+class DockerRepository(TypedDict, total=False):
+    """Docker repository."""
 
     server: str
     """ The server URL """
 
     versions: List[str]
     """
-    Publish Docker repository versions.
+    Docker repository versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
 
@@ -241,20 +210,24 @@ class PublishDockerRepository(TypedDict, total=False):
     """
 
 
-PublishHelm = Union["PublishHelmConfig", Literal[False]]
+HELM_VERSIONS_DEFAULT = ["version_tag"]
+""" Default value of the field path 'helm config versions' """
+
+
+Helm = Union["HelmConfig", Literal[False]]
 """
-publish helm.
+helm.
 
 Configuration to publish Helm charts on GitHub release
 
 Aggregation type: oneOf
-Subtype: "PublishHelmConfig"
+Subtype: "HelmConfig"
 """
 
 
-class PublishHelmConfig(TypedDict, total=False):
+class HelmConfig(TypedDict, total=False):
     """
-    publish helm config.
+    helm config.
 
     Configuration to publish on Helm charts on GitHub release
     """
@@ -263,50 +236,59 @@ class PublishHelmConfig(TypedDict, total=False):
     """ The folders that will be published """
 
     versions: List[str]
-    """ The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script """
-
-
-PublishPypi = Union["PublishPypiConfig", "_PublishPypiOneof1"]
-"""
-publish pypi.
-
-Configuration to publish on pypi
-
-default:
-  {}
-
-Aggregation type: oneOf
-Subtype: "PublishPypiConfig"
-"""
-
-
-class PublishPypiConfig(TypedDict, total=False):
     """
-    publish pypi config.
+    helm versions.
 
-    Configuration to publish on pypi
+    The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
 
     default:
-      {}
+      - version_tag
     """
 
-    packages: List["PublishPypiPackage"]
+
+PIP_PACKAGE_GROUP_DEFAULT = "default"
+""" Default value of the field path 'pypi package group' """
+
+
+PYPI_PACKAGE_PATH_DEFAULT = "."
+""" Default value of the field path 'pypi package path' """
+
+
+PYPI_VERSIONS_DEFAULT = ["version_tag"]
+""" Default value of the field path 'pypi versions' """
+
+
+class Pypi(TypedDict, total=False):
+    """
+    pypi.
+
+    Configuration to publish on pypi
+    """
+
+    packages: List["PypiPackage"]
     """ The configuration of packages that will be published """
 
     versions: List[str]
-    """ The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script """
-
-
-class PublishPypiPackage(TypedDict, total=False):
     """
-    publish pypi package.
+    pypi versions.
+
+    The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
+
+    default:
+      - version_tag
+    """
+
+
+class PypiPackage(TypedDict, total=False):
+    """
+    pypi package.
 
     The configuration of package that will be published
     """
 
     group: str
     """
-    Publish pip package group.
+    pip package group.
 
     The image is in the group, should be used with the --group option of tag-publish script
 
@@ -314,7 +296,13 @@ class PublishPypiPackage(TypedDict, total=False):
     """
 
     path: str
-    """ The path of the pypi package """
+    """
+    pypi package path.
+
+    The path of the pypi package
+
+    default: .
+    """
 
     build_command: List[str]
     """ The command used to do the build """
@@ -350,47 +338,28 @@ A version transformer definition
 """
 
 
-_PUBLISH_DOCKER_CONFIG_DISPATCH_DEFAULT: Dict[str, Any] = {}
-""" Default value of the field path 'Publish Docker config dispatch' """
+_DOCKER_SNYK_MONITOR_ARGS_ONEOF0_DEFAULT = ["--app-vulns"]
+""" Default value of the field path 'Docker Snyk monitor args oneof0' """
 
 
-_PUBLISH_DOCKER_CONFIG_DISPATCH_ONEOF1_DEFAULT: Dict[str, Any] = {}
-""" Default value of the field path 'Publish Docker config dispatch oneof1' """
+_DOCKER_SNYK_MONITOR_ARGS_ONEOF1_DEFAULT = ["--app-vulns"]
+""" Default value of the field path 'Docker Snyk monitor args oneof1' """
 
 
-_PUBLISH_DOCKER_SNYK_MONITOR_ARGS_ONEOF0_DEFAULT = ["--app-vulns"]
-""" Default value of the field path 'Publish Docker Snyk monitor args oneof0' """
+_DOCKER_SNYK_TEST_ARGS_ONEOF0_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
+""" Default value of the field path 'Docker Snyk test args oneof0' """
 
 
-_PUBLISH_DOCKER_SNYK_MONITOR_ARGS_ONEOF1_DEFAULT = ["--app-vulns"]
-""" Default value of the field path 'Publish Docker Snyk monitor args oneof1' """
+_DOCKER_SNYK_TEST_ARGS_ONEOF1_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
+""" Default value of the field path 'Docker Snyk test args oneof1' """
 
 
-_PUBLISH_DOCKER_SNYK_TEST_ARGS_ONEOF0_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
-""" Default value of the field path 'Publish Docker Snyk test args oneof0' """
-
-
-_PUBLISH_DOCKER_SNYK_TEST_ARGS_ONEOF1_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
-""" Default value of the field path 'Publish Docker Snyk test args oneof1' """
-
-
-_PUBLISH_PYPI_ONEOF1_DEFAULT: Dict[str, Any] = {}
-""" Default value of the field path 'publish pypi oneof1' """
-
-
-_PublishDockerConfigDispatchOneof1 = Literal[False]
-"""
-default:
-  {}
-"""
-
-
-class _PublishDockerConfigSnyk(TypedDict, total=False):
+class _DockerSnyk(TypedDict, total=False):
     """Checks the published images with Snyk"""
 
-    monitor_args: Union["_PublishDockerSnykMonitorArgsOneof0", "_PublishDockerSnykMonitorArgsOneof1"]
+    monitor_args: Union["_DockerSnykMonitorArgsOneof0", "_DockerSnykMonitorArgsOneof1"]
     """
-    Publish Docker Snyk monitor args.
+    Docker Snyk monitor args.
 
     The arguments to pass to the Snyk container monitor command
 
@@ -400,9 +369,9 @@ class _PublishDockerConfigSnyk(TypedDict, total=False):
     Aggregation type: oneOf
     """
 
-    test_args: Union["_PublishDockerSnykTestArgsOneof0", "_PublishDockerSnykTestArgsOneof1"]
+    test_args: Union["_DockerSnykTestArgsOneof0", "_DockerSnykTestArgsOneof1"]
     """
-    Publish Docker Snyk test args.
+    Docker Snyk test args.
 
     The arguments to pass to the Snyk container test command
 
@@ -414,29 +383,21 @@ class _PublishDockerConfigSnyk(TypedDict, total=False):
     """
 
 
-_PublishDockerSnykMonitorArgsOneof0 = List[str]
+_DockerSnykMonitorArgsOneof0 = List[str]
 """
 default:
   - --app-vulns
 """
 
 
-_PublishDockerSnykMonitorArgsOneof1 = Literal[False]
+_DockerSnykMonitorArgsOneof1 = Literal[False]
 """
 default:
   - --app-vulns
 """
 
 
-_PublishDockerSnykTestArgsOneof0 = List[str]
-"""
-default:
-  - --app-vulns
-  - --severity-threshold=critical
-"""
-
-
-_PublishDockerSnykTestArgsOneof1 = Literal[False]
+_DockerSnykTestArgsOneof0 = List[str]
 """
 default:
   - --app-vulns
@@ -444,10 +405,11 @@ default:
 """
 
 
-_PublishPypiOneof1 = Literal[False]
+_DockerSnykTestArgsOneof1 = Literal[False]
 """
 default:
-  {}
+  - --app-vulns
+  - --severity-threshold=critical
 """
 
 

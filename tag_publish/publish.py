@@ -8,6 +8,7 @@ import os
 import re
 import subprocess  # nosec
 import sys
+from typing import Optional
 
 import ruamel
 import tomllib
@@ -16,7 +17,11 @@ import tag_publish.configuration
 
 
 def pip(
-    package: tag_publish.configuration.PublishPypiPackage, version: str, version_type: str, publish: bool
+    package: tag_publish.configuration.PypiPackage,
+    version: str,
+    version_type: str,
+    publish: bool,
+    github: tag_publish.GH,
 ) -> bool:
     """
     Publish to pypi.
@@ -27,6 +32,7 @@ def pip(
                     version_branch, feature_branch, feature_tag (for pull request)
         publish: If False only check the package
         package: The package configuration
+        github: The GitHub helper
 
     """
     print(f"::group::{'Publishing' if publish else 'Checking'} '{package.get('path')}' to pypi")
@@ -37,10 +43,8 @@ def pip(
         env = {}
         env["VERSION"] = version
         env["VERSION_TYPE"] = version_type
-        full_repo = tag_publish.get_repository()
-        full_repo_split = full_repo.split("/")
-        master_branch, _ = tag_publish.get_master_branch(full_repo_split)
-        is_master = master_branch == version
+        default_branch = github.repo.default_branch
+        is_master = default_branch == version
         env["IS_MASTER"] = "TRUE" if is_master else "FALSE"
 
         cwd = os.path.abspath(package.get("path", "."))
@@ -103,12 +107,14 @@ def pip(
 
 
 def docker(
-    config: tag_publish.configuration.PublishDockerRepository,
+    config: tag_publish.configuration.DockerRepository,
     name: str,
-    image_config: tag_publish.configuration.PublishDockerImage,
+    image_config: tag_publish.configuration.DockerImage,
     tag_src: str,
     dst_tags: list[str],
     images_full: list[str],
+    version_type: str,
+    published: Optional[list[tag_publish.PublishedPayload]] = None,
 ) -> bool:
     """
     Publish to a Docker registry.
@@ -126,6 +132,9 @@ def docker(
         tag_src: The source tag (usually latest)
         dst_tags: Publish using the provided tags
         images_full: The list of published images (with tag), used to build the dispatch event
+        version_type: Describe the kind of release we do: rebuild (specified using --type), version_tag,
+                    version_branch, feature_branch, feature_tag (for pull request)
+        published: The list of published artifacts to be filled
 
     """
     print(
@@ -149,6 +158,16 @@ def docker(
                     check=True,
                 )
                 new_images_full.append(f"{config['server']}/{image_config['name']}:{tag}")
+                if published is not None:
+                    published.append(
+                        {
+                            "type": "docker",
+                            "repository": config["server"],
+                            "name": image_config["name"],
+                            "tag": tag,
+                            "version_type": version_type,
+                        }
+                    )
         else:
             for tag in dst_tags:
                 if tag_src != tag:
@@ -161,6 +180,16 @@ def docker(
                         ],
                         check=True,
                     )
+                    if published is not None:
+                        published.append(
+                            {
+                                "type": "docker",
+                                "repository": "docker.io",
+                                "name": image_config["name"],
+                                "tag": tag,
+                                "version_type": version_type,
+                            }
+                        )
                 new_images_full.append(f"{image_config['name']}:{tag}")
 
         for image in new_images_full:

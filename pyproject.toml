@@ -56,8 +56,8 @@ include = [
 exclude = ["tag_publish/node_modules/**/test"]
 
 [tool.poetry.scripts]
-tag_publish = "tag_publish.cli:main"
-tag_publish_new = "tag_publish.new:main"
+tag-publish = "tag_publish.cli:main"
+tag-publish-new = "tag_publish.new:main"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
@@ -66,6 +66,10 @@ twine = "5.1.1"
 PyYAML = "6.0.2"
 id = "1.4.0"
 security-md = "0.2.3"
+application-download = "0.0.1.dev3"
+PyGithub = "2.4.0"
+debian-inspector = "31.1.0"
+multi-repo-automation = "1.4.1"
 
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.12.1", extras = ["with-bandit", "with-mypy", "with-pyroma"] }
