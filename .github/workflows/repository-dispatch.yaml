@@ -10,8 +10,8 @@ on:
         required: true
       name:
         description: The package name
-      path:
-        description: The package path
+      folder:
+        description: The package folder
       version:
         description: The package version
       tag:
@@ -33,7 +33,7 @@ jobs:
         run: |
           echo "Event type: ${{ github.event.client_payload.type }}"
           echo "Package name: ${{ github.event.client_payload.name }}"
-          echo "Package path: ${{ github.event.client_payload.path }}"
+          echo "Package folder: ${{ github.event.client_payload.folder }}"
           echo "Package version: ${{ github.event.client_payload.version }}"
           echo "Package tag: ${{ github.event.client_payload.tag }}"
           echo "Repository: ${{ github.event.client_payload.repository }}"

@@ -35,7 +35,8 @@ def pip(
         github: The GitHub helper
 
     """
-    print(f"::group::{'Publishing' if publish else 'Checking'} '{package.get('path')}' to pypi")
+    folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
+    print(f"::group::{'Publishing' if publish else 'Checking'} '{folder}' to pypi")
     sys.stdout.flush()
     sys.stderr.flush()
 
@@ -47,7 +48,7 @@ def pip(
         is_master = default_branch == version
         env["IS_MASTER"] = "TRUE" if is_master else "FALSE"
 
-        cwd = os.path.abspath(package.get("path", "."))
+        cwd = os.path.abspath(folder)
 
         dist = os.path.join(cwd, "dist")
         if not os.path.exists(dist):
@@ -79,10 +80,6 @@ def pip(
                         ["pip", "install", *pyproject.get("build-system", {}).get("requires", [])], check=True
                     )
                 if use_poetry:
-                    freeze = subprocess.run(["pip", "freeze"], check=True, stdout=subprocess.PIPE)
-                    for freeze_line in freeze.stdout.decode("utf-8").split("\n"):
-                        if freeze_line.startswith("poetry-") or freeze_line.startswith("poetry="):
-                            print(freeze_line)
                     env_bash = " ".join([f"{key}={value}" for key, value in env.items()])
                     print(f"Run in {cwd}: {env_bash} poetry build")
                     sys.stdout.flush()

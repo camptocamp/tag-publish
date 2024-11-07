@@ -8,6 +8,7 @@ import subprocess  # nosec
 from re import Match, Pattern
 from typing import Any, Optional, TypedDict, cast
 
+import application_download.cli
 import github
 import requests
 import ruamel.yaml
@@ -32,10 +33,25 @@ class GH:
 
     def __init__(self) -> None:
         """Initialize the GitHub helper class."""
-        token = os.environ["GITHUB_TOKEN"]
+        token = (
+            os.environ["GITHUB_TOKEN"]
+            if "GITHUB_TOKEN" in os.environ
+            else subprocess.run(
+                ["gh", "auth", "token"], check=True, stdout=subprocess.PIPE, encoding="utf-8"
+            ).stdout.strip()
+        )
         self.auth = github.Auth.Token(token)
         self.github = github.Github(auth=self.auth)
-        self.repo = self.github.get_repo(os.environ["GITHUB_REPOSITORY"])
+        self.repo = self.github.get_repo(
+            os.environ["GITHUB_REPOSITORY"]
+            if "GITHUB_REPOSITORY" in os.environ
+            else subprocess.run(
+                ["gh", "repo", "view", "--json", "name,owner", "--jq", '(.owner.login + "/" + .name)'],
+                check=True,
+                stdout=subprocess.PIPE,
+                encoding="utf-8",
+            ).stdout.strip()
+        )
         self.default_branch = self.repo.default_branch
 
 
@@ -77,8 +93,8 @@ def get_config(gh: GH) -> tag_publish.configuration.Configuration:
     Get the configuration, with project and auto detections.
     """
     config: tag_publish.configuration.Configuration = {}
-    if os.path.exists("ci/config.yaml"):
-        with open("ci/config.yaml", encoding="utf-8") as open_file:
+    if os.path.exists(".github/publish.yaml"):
+        with open(".github/publish.yaml", encoding="utf-8") as open_file:
             yaml_ = ruamel.yaml.YAML()
             config = yaml_.load(open_file)
 
@@ -224,6 +240,17 @@ def snyk_exec() -> tuple[str, dict[str, str]]:
     env = {**os.environ}
     env["FORCE_COLOR"] = "true"
     snyk_bin = os.path.expanduser(os.path.join("~", ".local", "bin", "snyk"))
+
+    if not os.path.exists(snyk_bin):
+        folder = os.path.expanduser(os.path.join("~", ".config", "application_download"))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        application_download.cli.download_application("snyk/cli")
+
+    if "SNYK_TOKEN" not in env:
+        env["SNYK_TOKEN"] = subprocess.run(
+            ["gopass", "show", "gs/ci/snyk/token"], check=True, stdout=subprocess.PIPE, encoding="utf-8"
+        ).stdout.strip()
     if "SNYK_ORG" in env:
         subprocess.run([snyk_bin, "config", "set", f"org={env['SNYK_ORG']}"], check=True, env=env)
 
@@ -237,7 +264,7 @@ class PublishedPayload(TypedDict, total=False):
 
     type: str
     name: str
-    path: str
+    folder: str
     version: str
     tag: str
     repository: str

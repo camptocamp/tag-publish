@@ -79,6 +79,8 @@ def main() -> None:
     parser.add_argument("--branch", help="The branch from which to compute the version")
     parser.add_argument("--tag", help="The tag from which to compute the version")
     parser.add_argument("--dry-run", action="store_true", help="Don't do the publish")
+    parser.add_argument("--dry-run-tag", help="Don't do the publish, on a tag")
+    parser.add_argument("--dry-run-branch", help="Don't do the publish, on a branch")
     parser.add_argument(
         "--type",
         help="The type of version, if no argument provided auto-determinate, can be: "
@@ -86,6 +88,13 @@ def main() -> None:
         "(for pull request)",
     )
     args = parser.parse_args()
+
+    if args.dry_run_tag is not None:
+        args.dry_run = True
+        os.environ["GITHUB_REF"] = f"refs/tags/{args.dry_run_tag}"
+    if args.dry_run_branch is not None:
+        args.dry_run = True
+        os.environ["GITHUB_REF"] = f"refs/heads/{args.dry_run_branch}"
 
     github = tag_publish.GH()
     config = tag_publish.get_config(github)
@@ -173,38 +182,90 @@ def main() -> None:
     success = True
     published_payload: list[tag_publish.PublishedPayload] = []
 
-    pypi_config = cast(
-        tag_publish.configuration.Pypi,
-        config.get("pypi", {}) if config.get("pypi", False) else {},
+    success &= _handle_pypi_publish(
+        args.group, args.dry_run, config, version, version_type, github, published_payload
     )
+    success &= _handle_docker_publish(
+        args.group,
+        args.dry_run,
+        args.docker_versions,
+        args.snyk_version,
+        config,
+        version,
+        version_type,
+        github,
+        published_payload,
+        local,
+    )
+    success &= _handle_helm_publish(args.dry_run, config, version, version_type, github, published_payload)
+    _trigger_dispatch_events(config, published_payload, github)
+
+    if not success:
+        sys.exit(1)
+
+
+def _handle_pypi_publish(
+    group: str,
+    dry_run: bool,
+    config: tag_publish.configuration.Configuration,
+    version: str,
+    version_type: str,
+    github: tag_publish.GH,
+    published_payload: list[tag_publish.PublishedPayload],
+) -> bool:
+    success = True
+    pypi_config = config.get("pypi", {})
     if pypi_config:
-        if pypi_config["packages"]:
+        if "packages" in pypi_config:
             tag_publish.lib.oidc.pypi_login()
 
         for package in pypi_config["packages"]:
-            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == args.group:
+            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in pypi_config.get(
                     "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
                 )
-                path = package.get("path", tag_publish.configuration.PYPI_PACKAGE_PATH_DEFAULT)
-                if args.dry_run:
-                    print(f"{'Publishing' if publish else 'Checking'} '{path}' to pypi, skipping (dry run)")
+                folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
+                if dry_run:
+                    print(f"{'Publishing' if publish else 'Checking'} '{folder}' to pypi, skipping (dry run)")
                 else:
                     success &= tag_publish.publish.pip(package, version, version_type, publish, github)
                     published_payload.append(
                         {
                             "type": "pypi",
-                            "path": "path",
+                            "folder": folder,
                             "version": version,
                             "version_type": version_type,
                         }
                     )
+    return success
 
-    docker_config = cast(
-        tag_publish.configuration.Docker,
-        config.get("docker", {}) if config.get("docker", False) else {},
-    )
+
+def _handle_docker_publish(
+    group: str,
+    dry_run: bool,
+    docker_versions: str,
+    snyk_version: str,
+    config: tag_publish.configuration.Configuration,
+    version: str,
+    version_type: str,
+    github: tag_publish.GH,
+    published_payload: list[tag_publish.PublishedPayload],
+    local: bool,
+) -> bool:
+    success = True
+    docker_config = config.get("docker", {})
     if docker_config:
+        if docker_config.get("auto_login", tag_publish.configuration.DOCKER_AUTO_LOGIN_DEFAULT):
+            subprocess.run(
+                [
+                    "docker",
+                    "login",
+                    "ghcr.io",
+                    "--username=github",
+                    f"--password={os.environ['GITHUB_TOKEN']}",
+                ],
+                check=True,
+            )
         security_text = ""
         if local:
             with open("SECURITY.md", encoding="utf-8") as security_file:
@@ -232,7 +293,6 @@ def main() -> None:
             add_latest = True
             for data in security.data:
                 row_tags = {t.strip() for t in data[alternate_tag_index].split(",") if t.strip()}
-                print(row_tags)
                 if "latest" in row_tags:
                     print("latest found in ", row_tags)
                     add_latest = False
@@ -243,23 +303,23 @@ def main() -> None:
         images_src: set[str] = set()
         images_full: list[str] = []
         images_snyk: set[str] = set()
-        versions = args.docker_versions.split(",") if args.docker_versions else [version]
+        versions = docker_versions.split(",") if docker_versions else [version]
         for image_conf in docker_config.get("images", []):
-            if image_conf.get("group", tag_publish.configuration.DOCKER_IMAGE_GROUP_DEFAULT) == args.group:
+            if image_conf.get("group", tag_publish.configuration.DOCKER_IMAGE_GROUP_DEFAULT) == group:
                 for tag_config in image_conf.get("tags", tag_publish.configuration.DOCKER_IMAGE_TAGS_DEFAULT):
                     tag_src = tag_config.format(version="latest")
                     image_source = f"{image_conf['name']}:{tag_src}"
                     images_src.add(image_source)
-                    tag_snyk = tag_config.format(version=args.snyk_version or version).lower()
+                    tag_snyk = tag_config.format(version=snyk_version or version).lower()
                     image_snyk = f"{image_conf['name']}:{tag_snyk}"
 
                     # Workaround sine we have the business plan
                     image_snyk = f"{image_conf['name']}_{tag_snyk}"
 
-                    if not args.dry_run:
+                    if not dry_run:
                         subprocess.run(["docker", "tag", image_source, image_snyk], check=True)
                     images_snyk.add(image_snyk)
-                    if tag_snyk != tag_src and not args.dry_run:
+                    if tag_snyk != tag_src and not dry_run:
                         subprocess.run(
                             [
                                 "docker",
@@ -270,13 +330,13 @@ def main() -> None:
                             check=True,
                         )
 
-                    for name, conf in {
-                        **cast(
+                    for name, conf in docker_config.get(
+                        "repository",
+                        cast(
                             dict[str, tag_publish.configuration.DockerRepository],
                             tag_publish.configuration.DOCKER_REPOSITORY_DEFAULT,
                         ),
-                        **docker_config.get("repository", {}),
-                    }.items():
+                    ).items():
                         for docker_version in versions:
                             if version_type in conf.get(
                                 "versions",
@@ -287,7 +347,7 @@ def main() -> None:
                                     for alt_tag in [docker_version, *alt_tags]
                                 ]
 
-                                if args.dry_run:
+                                if dry_run:
                                     for tag in tags:
                                         print(
                                             f"Publishing {image_conf['name']}:{tag} to {name}, skipping "
@@ -305,52 +365,54 @@ def main() -> None:
                                         published_payload,
                                     )
 
-        if args.dry_run:
+        if dry_run:
             sys.exit(0)
 
-        snyk_exec, env = tag_publish.snyk_exec()
-        for image in images_snyk:
-            print(f"::group::Snyk check {image}")
-            sys.stdout.flush()
-            sys.stderr.flush()
-            try:
-                if version_type in ("version_branch", "version_tag"):
-                    monitor_args = docker_config.get("snyk", {}).get(
-                        "monitor_args",
-                        tag_publish.configuration.DOCKER_SNYK_MONITOR_ARGS_DEFAULT,
+        has_gopass = subprocess.run(["gopass", "--version"]).returncode == 0  # nosec # pylint: disable=subprocess-run-check
+        if "SNYK_TOKEN" in os.environ or has_gopass:
+            snyk_exec, env = tag_publish.snyk_exec()
+            for image in images_snyk:
+                print(f"::group::Snyk check {image}")
+                sys.stdout.flush()
+                sys.stderr.flush()
+                try:
+                    if version_type in ("version_branch", "version_tag"):
+                        monitor_args = docker_config.get("snyk", {}).get(
+                            "monitor_args",
+                            tag_publish.configuration.DOCKER_SNYK_MONITOR_ARGS_DEFAULT,
+                        )
+                        if monitor_args is not False:
+                            subprocess.run(  # pylint: disable=subprocess-run-check
+                                [
+                                    snyk_exec,
+                                    "container",
+                                    "monitor",
+                                    *monitor_args,
+                                    # Available only on the business plan
+                                    # f"--project-tags=tag={image.split(':')[-1]}",
+                                    image,
+                                ],
+                                env=env,
+                            )
+                    test_args = docker_config.get("snyk", {}).get(
+                        "test_args", tag_publish.configuration.DOCKER_SNYK_TEST_ARGS_DEFAULT
                     )
-                    if monitor_args is not False:
-                        subprocess.run(  # pylint: disable=subprocess-run-check
-                            [
-                                snyk_exec,
-                                "container",
-                                "monitor",
-                                *monitor_args,
-                                # Available only on the business plan
-                                # f"--project-tags=tag={image.split(':')[-1]}",
-                                image,
-                            ],
+                    snyk_error = False
+                    if test_args is not False:
+                        proc = subprocess.run(
+                            [snyk_exec, "container", "test", *test_args, image],
+                            check=False,
                             env=env,
                         )
-                test_args = docker_config.get("snyk", {}).get(
-                    "test_args", tag_publish.configuration.DOCKER_SNYK_TEST_ARGS_DEFAULT
-                )
-                snyk_error = False
-                if test_args is not False:
-                    proc = subprocess.run(
-                        [snyk_exec, "container", "test", *test_args, image],
-                        check=False,
-                        env=env,
-                    )
-                    if proc.returncode != 0:
-                        snyk_error = True
-                print("::endgroup::")
-                if snyk_error:
-                    print("::error::Critical vulnerability found by Snyk in the published image.")
-            except subprocess.CalledProcessError as exception:
-                print(f"Error: {exception}")
-                print("::endgroup::")
-                print("::error::With error")
+                        if proc.returncode != 0:
+                            snyk_error = True
+                    print("::endgroup::")
+                    if snyk_error:
+                        print("::error::Critical vulnerability found by Snyk in the published image.")
+                except subprocess.CalledProcessError as exception:
+                    print(f"Error: {exception}")
+                    print("::endgroup::")
+                    print("::error::With error")
 
         versions_config, dpkg_config_found = tag_publish.lib.docker.get_versions_config()
         dpkg_success = True
@@ -360,7 +422,7 @@ def main() -> None:
         if not dpkg_success:
             current_versions_in_images: dict[str, dict[str, str]] = {}
             if dpkg_config_found:
-                with open("ci/dpkg-versions.yaml", encoding="utf-8") as dpkg_versions_file:
+                with open(".github/dpkg-versions.yaml", encoding="utf-8") as dpkg_versions_file:
                     current_versions_in_images = yaml.load(dpkg_versions_file, Loader=yaml.SafeLoader)
             for image in images_src:
                 _, versions_image = tag_publish.lib.docker.get_dpkg_packages_versions(image)
@@ -378,7 +440,7 @@ def main() -> None:
             print("Current versions of the Debian packages in Docker images:")
             print(yaml.dump(current_versions_in_images, Dumper=yaml.SafeDumper, default_flow_style=False))
             if dpkg_config_found:
-                with open("ci/dpkg-versions.yaml", "w", encoding="utf-8") as dpkg_versions_file:
+                with open(".github/dpkg-versions.yaml", "w", encoding="utf-8") as dpkg_versions_file:
                     yaml.dump(
                         current_versions_in_images,
                         dpkg_versions_file,
@@ -388,15 +450,21 @@ def main() -> None:
 
             if dpkg_config_found:
                 success = False
+    return success
 
-    helm_config = cast(
-        tag_publish.configuration.HelmConfig,
-        config.get("helm", {}) if config.get("helm", False) else {},
-    )
-    if (
-        helm_config
-        and helm_config["folders"]
-        and version_type in helm_config.get("versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT)
+
+def _handle_helm_publish(
+    dry_run: bool,
+    config: tag_publish.configuration.Configuration,
+    version: str,
+    version_type: str,
+    github: tag_publish.GH,
+    published_payload: list[tag_publish.PublishedPayload],
+) -> bool:
+    success = True
+    helm_config = config.get("helm", {})
+    if helm_config.get("folders") and version_type in helm_config.get(
+        "versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT
     ):
         application_download.cli.download_application("helm/chart-releaser")
 
@@ -432,19 +500,27 @@ def main() -> None:
             version = ".".join(versions)
 
         for folder in helm_config["folders"]:
-            token = os.environ["GITHUB_TOKEN"]
-            success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
-            published_payload.append(
-                {
-                    "type": "helm",
-                    "path": folder,
-                    "version": version,
-                    "version_type": version_type,
-                }
-            )
+            if dry_run:
+                print(f"Publishing '{folder}' to helm, skipping (dry run)")
+            else:
+                token = os.environ["GITHUB_TOKEN"]
+                success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
+                published_payload.append(
+                    {
+                        "type": "helm",
+                        "folder": folder,
+                        "version": version,
+                        "version_type": version_type,
+                    }
+                )
+    return success
 
-    config = tag_publish.get_config(tag_publish.GH())
 
+def _trigger_dispatch_events(
+    config: tag_publish.configuration.Configuration,
+    published_payload: list[tag_publish.PublishedPayload],
+    github: tag_publish.GH,
+) -> None:
     for published in published_payload:
         for dispatch_config in config.get("dispatch", []):
             repository = dispatch_config.get("repository")
@@ -462,9 +538,6 @@ def main() -> None:
                 print(f"Triggering {event_type}:{id_} with {json.dumps(published)}")
                 github_repo = github.repo
             github_repo.create_repository_dispatch(event_type, published)  # type: ignore[arg-type]
-
-    if not success:
-        sys.exit(1)
 
 
 if __name__ == "__main__":

@@ -77,6 +77,12 @@
             }
           }
         },
+        "auto_login": {
+          "title": "Docker auto login",
+          "description": "Auto login to the GitHub Docker registry",
+          "type": "boolean",
+          "default": false
+        },
         "snyk": {
           "description": "Checks the published images with Snyk",
           "type": "object",
@@ -132,9 +138,9 @@
                 "default": "default",
                 "type": "string"
               },
-              "path": {
-                "title": "pypi package path",
-                "description": "The path of the pypi package",
+              "folder": {
+                "title": "pypi package folder",
+                "description": "The folder of the pypi package",
                 "type": "string",
                 "default": "."
               },
@@ -162,34 +168,25 @@
     "helm": {
       "title": "helm",
       "description": "Configuration to publish Helm charts on GitHub release",
-      "oneOf": [
-        {
-          "title": "helm config",
-          "description": "Configuration to publish on Helm charts on GitHub release",
-          "type": "object",
-          "properties": {
-            "folders": {
-              "description": "The folders that will be published",
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "versions": {
-              "title": "helm versions",
-              "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
-              "type": "array",
-              "default": ["version_tag"],
-              "items": {
-                "type": "string"
-              }
-            }
+      "type": "object",
+      "properties": {
+        "folders": {
+          "description": "The folders that will be published",
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         },
-        {
-          "const": false
+        "versions": {
+          "title": "helm versions",
+          "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
+          "type": "array",
+          "default": ["version_tag"],
+          "items": {
+            "type": "string"
+          }
         }
-      ]
+      }
     },
     "version_transform": {
       "title": "Version transform",

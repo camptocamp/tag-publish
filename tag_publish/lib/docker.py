@@ -100,8 +100,8 @@ def get_versions_config() -> tuple[dict[str, dict[str, str]], bool]:
     """
     Get the versions from the config file.
     """
-    if os.path.exists("ci/dpkg-versions.yaml"):
-        with open("ci/dpkg-versions.yaml", encoding="utf-8") as versions_file:
+    if os.path.exists(".github/dpkg-versions.yaml"):
+        with open(".github/dpkg-versions.yaml", encoding="utf-8") as versions_file:
             return (
                 cast(dict[str, dict[str, str]], yaml.load(versions_file.read(), Loader=yaml.SafeLoader)),
                 True,
