@@ -5,7 +5,15 @@ pypi:
     - version_tag
     - version_branch
   packages:
-    - path: .
+    - {}
 docker:
+  auto_login: true
   images:
     - name: camptocamp/tag-publish
+  repository:
+    github:
+      server: ghcr.io
+      versions:
+        - version_tag
+        - version_branch
+        - rebuild

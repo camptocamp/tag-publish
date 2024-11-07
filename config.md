@@ -30,6 +30,7 @@ _Tag Publish configuration file_
       - **`server`** _(string)_: The server URL.
       - **`versions`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["version_tag", "version_branch", "rebuild", "feature_branch"]`.
         - **Items** _(string)_
+  - **`auto_login`** _(boolean)_: Auto login to the GitHub Docker registry. Default: `false`.
   - **`snyk`** _(object)_: Checks the published images with Snyk.
     - **`monitor_args`**: The arguments to pass to the Snyk container monitor command. Default: `["--app-vulns"]`.
       - **One of**
@@ -45,19 +46,16 @@ _Tag Publish configuration file_
   - **`packages`** _(array)_: The configuration of packages that will be published.
     - **Items** _(object)_: The configuration of package that will be published.
       - **`group`** _(string)_: The image is in the group, should be used with the --group option of tag-publish script. Default: `"default"`.
-      - **`path`** _(string)_: The path of the pypi package. Default: `"."`.
+      - **`folder`** _(string)_: The folder of the pypi package. Default: `"."`.
       - **`build_command`** _(array)_: The command used to do the build.
         - **Items** _(string)_
   - **`versions`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["version_tag"]`.
     - **Items** _(string)_
-- <a id="definitions/helm"></a>**`helm`**: Configuration to publish Helm charts on GitHub release.
-  - **One of**
-    - _object_: Configuration to publish on Helm charts on GitHub release.
-      - **`folders`** _(array)_: The folders that will be published.
-        - **Items** _(string)_
-      - **`versions`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["version_tag"]`.
-        - **Items** _(string)_
-    - : Must be: `false`.
+- <a id="definitions/helm"></a>**`helm`** _(object)_: Configuration to publish Helm charts on GitHub release.
+  - **`folders`** _(array)_: The folders that will be published.
+    - **Items** _(string)_
+  - **`versions`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["version_tag"]`.
+    - **Items** _(string)_
 - <a id="definitions/version_transform"></a>**`version_transform`** _(array)_: A version transformer definition.
   - **Items** _(object)_
     - **`from`** _(string)_: The from regular expression.

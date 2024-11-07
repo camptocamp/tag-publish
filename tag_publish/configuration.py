@@ -38,9 +38,6 @@ class Configuration(TypedDict, total=False):
     helm.
 
     Configuration to publish Helm charts on GitHub release
-
-    Aggregation type: oneOf
-    Subtype: "HelmConfig"
     """
 
     dispatch: List["DispatchConfig"]
@@ -66,6 +63,10 @@ DISPATCH_EVENT_TYPE_DEFAULT = "published"
 
 DISPATCH_REPOSITORY_DEFAULT = "camptocamp/argocd-gs-gmf-apps"
 """ Default value of the field path 'dispatch config repository' """
+
+
+DOCKER_AUTO_LOGIN_DEFAULT = False
+""" Default value of the field path 'Docker auto_login' """
 
 
 DOCKER_IMAGE_GROUP_DEFAULT = "default"
@@ -160,6 +161,15 @@ class Docker(TypedDict, total=False):
         - rebuild
     """
 
+    auto_login: bool
+    """
+    Docker auto login.
+
+    Auto login to the GitHub Docker registry
+
+    default: False
+    """
+
     snyk: "_DockerSnyk"
     """ Checks the published images with Snyk """
 
@@ -211,25 +221,14 @@ class DockerRepository(TypedDict, total=False):
 
 
 HELM_VERSIONS_DEFAULT = ["version_tag"]
-""" Default value of the field path 'helm config versions' """
+""" Default value of the field path 'helm versions' """
 
 
-Helm = Union["HelmConfig", Literal[False]]
-"""
-helm.
-
-Configuration to publish Helm charts on GitHub release
-
-Aggregation type: oneOf
-Subtype: "HelmConfig"
-"""
-
-
-class HelmConfig(TypedDict, total=False):
+class Helm(TypedDict, total=False):
     """
-    helm config.
+    helm.
 
-    Configuration to publish on Helm charts on GitHub release
+    Configuration to publish Helm charts on GitHub release
     """
 
     folders: List[str]
@@ -250,8 +249,8 @@ PIP_PACKAGE_GROUP_DEFAULT = "default"
 """ Default value of the field path 'pypi package group' """
 
 
-PYPI_PACKAGE_PATH_DEFAULT = "."
-""" Default value of the field path 'pypi package path' """
+PYPI_PACKAGE_FOLDER_DEFAULT = "."
+""" Default value of the field path 'pypi package folder' """
 
 
 PYPI_VERSIONS_DEFAULT = ["version_tag"]
@@ -295,11 +294,11 @@ class PypiPackage(TypedDict, total=False):
     default: default
     """
 
-    path: str
+    folder: str
     """
-    pypi package path.
+    pypi package folder.
 
-    The path of the pypi package
+    The folder of the pypi package
 
     default: .
     """
