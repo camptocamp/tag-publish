@@ -67,7 +67,7 @@ PyYAML = "6.0.2"
 id = "1.4.0"
 security-md = "0.2.3"
 application-download = "0.0.1.dev3"
-PyGithub = "2.4.0"
+PyGithub = "2.5.0"
 debian-inspector = "31.1.0"
 multi-repo-automation = "1.4.1"
 
