@@ -15,7 +15,6 @@ import sys
 from re import Match
 from typing import Optional, cast
 
-import application_download.cli
 import security_md
 import yaml
 
@@ -219,7 +218,7 @@ def _handle_pypi_publish(
         if "packages" in pypi_config:
             tag_publish.lib.oidc.pypi_login()
 
-        for package in pypi_config["packages"]:
+        for package in pypi_config.get("packages", []):
             if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in pypi_config.get(
                     "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
@@ -466,7 +465,7 @@ def _handle_helm_publish(
     if helm_config.get("folders") and version_type in helm_config.get(
         "versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT
     ):
-        application_download.cli.download_application("helm/chart-releaser")
+        tag_publish.download_application("helm/chart-releaser")
 
         owner = github.repo.owner.login
         repo = github.repo.name
