@@ -28,7 +28,7 @@ repos:
             |^tag_publish/schema.json$
           )
   - repo: https://github.com/sbrunner/jsonschema-validator
-    rev: 0.1.0
+    rev: 0.2.1
     hooks:
       - id: jsonschema-validator
         files: |-
