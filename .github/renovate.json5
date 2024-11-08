@@ -35,6 +35,10 @@
       datasourceTemplate: 'python-version',
       depNameTemplate: 'python',
     },
+    {
+      fileMatch: ['^tag_publish/versions.yaml$'],
+      matchStrings: ['(?<depName>.*): (?<currentValue>.*) # (?<datasource>.*)'],
+    },
   ],
   packageRules: [
     /** Automerge the patch, the minor and the dev dependency */

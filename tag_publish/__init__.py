@@ -2,17 +2,21 @@
 Tag Publish main module.
 """
 
+import json
 import os.path
+import pkgutil
 import re
 import subprocess  # nosec
 from re import Match, Pattern
-from typing import Any, Optional, TypedDict, cast
+from typing import Any, Optional, TypedDict, cast, overload
 
-import application_download.cli
+import applications_download
 import github
+import jsonschema_validator
 import requests
 import ruamel.yaml
 import security_md
+import yaml
 
 import tag_publish.configuration
 
@@ -94,9 +98,14 @@ def get_config(gh: GH) -> tag_publish.configuration.Configuration:
     """
     config: tag_publish.configuration.Configuration = {}
     if os.path.exists(".github/publish.yaml"):
+        schema_data = pkgutil.get_data("tag_publish", "schema.json")
+        assert schema_data is not None
+        schema = json.loads(schema_data)
+
         with open(".github/publish.yaml", encoding="utf-8") as open_file:
             yaml_ = ruamel.yaml.YAML()
             config = yaml_.load(open_file)
+            jsonschema_validator.validate(".github/publish.yaml", cast(dict[str, Any], config), schema)
 
     merge(
         {
@@ -235,17 +244,40 @@ def add_authorization_header(headers: dict[str, str]) -> dict[str, str]:
         return headers
 
 
+@overload
+def download_application(application_name: str, binary_filename: str) -> str: ...
+
+
+@overload
+def download_application(application_name: str) -> None: ...
+
+
+def download_application(application_name: str, binary_filename: Optional[str] = None) -> Optional[str]:
+    """
+    Download the application if necessary, with the included version.
+    """
+    binary_full_filename = (
+        os.path.expanduser(os.path.join("~", ".local", "bin", binary_filename)) if binary_filename else None
+    )
+
+    if not os.path.exists(binary_full_filename) if binary_full_filename else True:
+        applications = applications_download.load_applications(None)
+        versions_data = pkgutil.get_data("tag_publish", "versions.yaml")
+        assert versions_data is not None
+        versions = yaml.safe_load(versions_data)
+        applications_download.download_applications(
+            applications, {application_name: versions[application_name]}
+        )
+
+    return binary_full_filename
+
+
 def snyk_exec() -> tuple[str, dict[str, str]]:
     """Get the Snyk cli executable path."""
     env = {**os.environ}
     env["FORCE_COLOR"] = "true"
-    snyk_bin = os.path.expanduser(os.path.join("~", ".local", "bin", "snyk"))
 
-    if not os.path.exists(snyk_bin):
-        folder = os.path.expanduser(os.path.join("~", ".config", "application_download"))
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        application_download.cli.download_application("snyk/cli")
+    snyk_bin = download_application("snyk/cli", "snyk")
 
     if "SNYK_TOKEN" not in env:
         env["SNYK_TOKEN"] = subprocess.run(

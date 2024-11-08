@@ -10,7 +10,9 @@ on:
   pull_request:
 
 permissions:
+  # To publish Docker images
   packages: write
+  # To publish Python packages
   id-token: write
 
 env:
