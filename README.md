@@ -3,7 +3,41 @@
 ## Publishing
 
 The main goals of Tag Publish offer the commands to publish the project,
-see the [documentation](https://github.com/camptocamp/c2cciutils/wiki/Publishing).
+Using a tag, a stabilization branch, a feature branch or a pull request.
+
+When possible it can do a secret-less publishing, if it's not possible the login should be done before the publishing.
+
+See the [documentation](https://github.com/camptocamp/c2cciutils/wiki/Publishing).
+
+## Startup
+
+Set the permissions:
+
+```yaml
+permissions:
+  # To publish Docker images on GHCR
+  packages: write
+  # To publish Python packages using OIDC
+  id-token: write
+  # To publish Helm charts
+  contents: write
+```
+
+Install the package in the worklow:
+
+```yaml
+- name: Install tag-publish
+  run: pip install c2cciutils-publish
+```
+
+Do the publishing:
+
+```yaml
+- name: Publish
+  run: tag-publish
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
 
 ## New version
 
@@ -39,20 +73,28 @@ See also [GitHub Documentation](https://docs.github.com/en/github/managing-secur
 
 ## Configuration
 
+The configuration file is `.github/publish.yaml`, the schema is `https://raw.githubusercontent.com/camptocamp/tag-publish/<version>/tag_publish/schema.json`.
+
 ### Dry run
 
 Dry run publish: `GITHUB_REF=... c2cciutils-publish --dry-run ...`
 
 ### To pypi
 
-The config is like this:
+Minimum configuration:
 
 ```yaml
-versions:
-  # List of kinds of versions you want to publish, that can be:
-  # rebuild (specified with --type),
-  # version_tag, version_branch, feature_branch, feature_tag (for pull request)
+pypi:
+  packages:
+    - {}
 ```
+
+If the file `~/.pypirc` didn't exists we will do a login using OpenId Connect (OIDC), see:
+https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi.
+
+By default the package will be published only on tag, if you want to publish on stabilization branch you should add
+a `versions` key with the list of versions you want to publish, that can be:
+`rebuild` (specified with --type), `version_tag`, `version_branch`, `feature_branch`, `feature_tag` (for pull request)
 
 It we have a `setup.py` file, we will be in legacy mode:
 When publishing, the version computed from arguments or `GITHUB_REF` is put in environment variable `VERSION`, thus you should use it in `setup.py`, example:
@@ -100,6 +142,8 @@ The OIDC login is recommended because it didn't needs any additional secrets,
 but it need some configuration on pypi in the package,
 see the [GitHub Documentation](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi#adding-the-identity-provider-to-pypi).
 
+The required permissions is `id-token: write`.
+
 #### Integration if the package directly in a Docker image
 
 To make it working in the `Dockerfile` you should have in the `poetry` stage:
@@ -130,38 +174,69 @@ build: ## Build the Docker images
 
 ### To Docker registry
 
-The config is like this:
+The minimal config is like this:
 
 ```yaml
-latest: True
-images:
-  - # The base name of the image we want to publish
-    name:
-repository:
-  <internal_name>:
-    # The fqdn name of the server if not Docker hub
-    server:
-    # List of kinds of versions you want to publish, that can be: rebuild (specified using --type),
-    # version_tag, version_branch, feature_branch, feature_tag (for pull request)
-    version:
-    # List of tags we want to publish interpreted with `format(version=version)`
-    # e.g. if you use `{version}-lite` when you publish the version `1.2.3` the source tag
-    # (that should be built by the application build) is `latest-lite`, and it will be published
-    # with the tag `1.2.3-lite`.
-    tags:
-    # If your images are published by different jobs you can separate them in different groups
-    # and publish them with `tag-publish --group=<group>`
-    group:
+docker:
+  images:
+    - name: camptocamp/tag-publish
+```
+
+If you want to use the GitHub token to be logged in on ghcr you should set `auto_login` to `True`, the
+requires the permissions are `packages: write`.
+
+With that the image initially named `camptocamp/tag-publish:latest` will be published on GitHub CHCR and on Docker hub.
+
+The full config is like this:
+
+```yaml
+docker:
+  auto_login: False
+  latest: True
+  images:
+    - # The base name of the image we want to publish
+      name:
+  repository:
+    <internal_name>:
+      # The fqdn name of the server if not Docker hub
+      server:
+      # List of kinds of versions you want to publish, that can be: rebuild (specified using --type),
+      # version_tag, version_branch, feature_branch, feature_tag (for pull request)
+      version:
+      # List of tags we want to publish interpreted with `format(version=version)`
+      # e.g. if you use `{version}-lite` when you publish the version `1.2.3` the source tag
+      # (that should be built by the application build) is `latest-lite`, and it will be published
+      # with the tag `1.2.3-lite`.
+      tags:
+      # If your images are published by different jobs you can separate them in different groups
+      # and publish them with `tag-publish --group=<group>`
+      group:
 ```
 
 By default, the last line of the `SECURITY.md` file will be published (`docker`) with the tag
 `latest`. Set `latest` to `False` to disable it.
 
-## Use Renovate to trigger a new build instead of the legacy rebuild
+#### Use Renovate to trigger a new build instead of the legacy rebuild
 
 If the `ci/dpkg-versions.yaml` or `.github/dpkg-versions.yaml` file is present, the package list will be updated on publishing.
 
 The versions will be updated by [GHCI](https://github.com/camptocamp/github-app-geo-project/) application.
+
+### HELM
+
+The minimal config is like this:
+
+```yaml
+helm:
+  folders:
+    - .
+```
+
+This will publish the `helm` charts in the current folder using [chert releaser](https://github.com/helm/chart-releaser).
+
+The artifacts will be attached to a GitHub release, and the `index.yaml` file will be updated in the `gh-pages` branch.
+
+The required permission is `contents: write`.
 
 ## Contributing
 
