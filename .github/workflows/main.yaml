@@ -14,6 +14,8 @@ permissions:
   packages: write
   # To publish Python packages
   id-token: write
+  # To publish Helm charts
+  contents: write
 
 env:
   HAS_SECRETS: ${{ secrets.HAS_SECRETS }}
@@ -83,7 +85,7 @@ jobs:
       - name: Prospector
         run: poetry run prospector --die-on-tool-error --output-format=pylint
 
-      - run: docker build --tag camptocamp/tag-publish .
+      - run: docker build --tag camptocamp/tag-publish tests
 
       - name: Publish
         run: poetry run tag-publish
