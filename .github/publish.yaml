@@ -17,3 +17,6 @@ docker:
         - version_tag
         - version_branch
         - rebuild
+helm:
+  folders:
+    - tests
