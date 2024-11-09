@@ -232,11 +232,20 @@ helm:
     - .
 ```
 
-This will publish the `helm` charts in the current folder using [chert releaser](https://github.com/helm/chart-releaser).
+This will publish the `helm` charts in the current folder using [chart releaser](https://github.com/helm/chart-releaser).
 
 The artifacts will be attached to a GitHub release, and the `index.yaml` file will be updated in the `gh-pages` branch.
 
 The required permission is `contents: write`.
+
+Create the required `gh-pages` branch:
+
+```bash
+git checkout --orphan gh-pages
+git reset --hard
+git commit --allow-empty -m "Initialize gh-pages branch"
+git push origin gh-pages
+```
 
 ## Contributing
 
