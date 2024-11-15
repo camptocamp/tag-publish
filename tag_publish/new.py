@@ -94,7 +94,7 @@ regarding the SECURITY.md available on GitHub.
     subprocess.run(["git", "checkout", default_branch], check=True)
 
     # Pull it from origin
-    subprocess.run(["git", "pull", arguments, default_branch], check=True)
+    subprocess.run(["git", "pull", arguments.remote, default_branch], check=True)
 
     # Push it to a new stabilization branch
     if arguments.version:
