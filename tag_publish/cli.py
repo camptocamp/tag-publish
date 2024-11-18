@@ -227,7 +227,8 @@ def _handle_pypi_publish(
                     print(f"{'Publishing' if publish else 'Checking'} '{folder}' to pypi, skipping (dry run)")
                 else:
                     success &= tag_publish.publish.pip(package, version, version_type, publish, github)
-                    published_payload.append({"type": "pypi", "folder": folder})
+                    if publish:
+                        published_payload.append({"type": "pypi", "folder": folder})
     return success
 
 
