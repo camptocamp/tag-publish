@@ -5,21 +5,8 @@ on:
     types:
       - published
     inputs:
-      type:
-        description: The type of the event
-        required: true
-      name:
-        description: The package name
-      folder:
-        description: The package folder
-      version:
-        description: The package version
-      tag:
-        description: The package tag
-      repository:
-        description: The repository name or URL
-      version_type:
-        description: The version type
+      content:
+        description: Published content
         required: true
 
 jobs:
@@ -31,10 +18,4 @@ jobs:
     steps:
       - name: Print the event
         run: |
-          echo "Event type: ${{ github.event.client_payload.type }}"
-          echo "Package name: ${{ github.event.client_payload.name }}"
-          echo "Package folder: ${{ github.event.client_payload.folder }}"
-          echo "Package version: ${{ github.event.client_payload.version }}"
-          echo "Package tag: ${{ github.event.client_payload.tag }}"
-          echo "Repository: ${{ github.event.client_payload.repository }}"
-          echo "Version type: ${{ github.event.client_payload.version_type }}"
+          echo "Publish: ${{ toJson(github.event.client_payload.content) }}"

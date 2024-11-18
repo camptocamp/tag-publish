@@ -45,7 +45,7 @@ class Configuration(TypedDict, total=False):
     Dispatch.
 
     default:
-      - {}
+      []
     """
 
 
@@ -53,7 +53,7 @@ DISPATCH_CONFIG_DEFAULT: Dict[str, Any] = {}
 """ Default value of the field path 'Dispatch item' """
 
 
-DISPATCH_DEFAULT = [{}]
+DISPATCH_DEFAULT: List[Any] = []
 """ Default value of the field path 'configuration dispatch' """
 
 

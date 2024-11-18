@@ -10,7 +10,7 @@ _Tag Publish configuration file_
 - **`docker`**: Refer to _[#/definitions/docker](#definitions/docker)_.
 - **`pypi`**: Refer to _[#/definitions/pypi](#definitions/pypi)_.
 - **`helm`**: Refer to _[#/definitions/helm](#definitions/helm)_.
-- **`dispatch`** _(array)_: Default: `[{}]`.
+- **`dispatch`** _(array)_: Default: `[]`.
   - **Items** _(object)_: Send a dispatch event to an other repository. Default: `{}`.
     - **`repository`** _(string)_: The repository name to be triggered. Default: `"camptocamp/argocd-gs-gmf-apps"`.
     - **`event-type`** _(string)_: The event type to be triggered. Default: `"published"`.

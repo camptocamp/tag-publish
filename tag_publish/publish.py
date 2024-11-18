@@ -110,7 +110,6 @@ def docker(
     tag_src: str,
     dst_tags: list[str],
     images_full: list[str],
-    version_type: str,
     published: Optional[list[tag_publish.PublishedPayload]] = None,
 ) -> bool:
     """
@@ -160,9 +159,8 @@ def docker(
                         {
                             "type": "docker",
                             "repository": config["server"],
-                            "name": image_config["name"],
+                            "image": image_config["name"],
                             "tag": tag,
-                            "version_type": version_type,
                         }
                     )
         else:
@@ -182,9 +180,8 @@ def docker(
                             {
                                 "type": "docker",
                                 "repository": "docker.io",
-                                "name": image_config["name"],
+                                "image": image_config["name"],
                                 "tag": tag,
-                                "version_type": version_type,
                             }
                         )
                 new_images_full.append(f"{image_config['name']}:{tag}")
