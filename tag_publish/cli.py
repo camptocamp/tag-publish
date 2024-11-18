@@ -361,7 +361,10 @@ def _handle_docker_publish(
         if dry_run:
             sys.exit(0)
 
-        has_gopass = subprocess.run(["gopass", "--version"]).returncode == 0  # nosec # pylint: disable=subprocess-run-check
+        try:
+            has_gopass = subprocess.run(["gopass", "--version"]).returncode == 0  # nosec # pylint: disable=subprocess-run-check
+        except FileNotFoundError:
+            has_gopass = False
         if "SNYK_TOKEN" in os.environ or has_gopass:
             snyk_exec, env = tag_publish.snyk_exec()
             for image in images_snyk:
