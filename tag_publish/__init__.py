@@ -67,9 +67,16 @@ def get_security_md(gh: GH) -> security_md.Security:
         gh: The GitHub helper
 
     """
-    security_file = gh.repo.get_contents("SECURITY.md")
-    assert isinstance(security_file, github.ContentFile.ContentFile)
-    return security_md.Security(security_file.decoded_content.decode("utf-8"))
+    try:
+        security_file = gh.repo.get_contents("SECURITY.md")
+        assert isinstance(security_file, github.ContentFile.ContentFile)
+        return security_md.Security(security_file.decoded_content.decode("utf-8"))
+    except github.GithubException as exception:
+        if exception.status == 404:
+            print("No security file in the repository")
+            return security_md.Security("")
+        else:
+            raise exception
 
 
 def merge(default_config: Any, config: Any) -> Any:

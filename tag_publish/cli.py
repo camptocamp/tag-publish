@@ -267,9 +267,12 @@ def _handle_docker_publish(
             )
         security_text = ""
         if local:
-            with open("SECURITY.md", encoding="utf-8") as security_file:
-                security_text = security_file.read()
-                security = security_md.Security(security_text)
+            if os.path.exists("SECURITY.md"):
+                with open("SECURITY.md", encoding="utf-8") as security_file:
+                    security_text = security_file.read()
+                    security = security_md.Security(security_text)
+            else:
+                security = security_md.Security("")
         else:
             security = tag_publish.get_security_md(github)
 
