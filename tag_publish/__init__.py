@@ -295,10 +295,7 @@ class PublishedPayload(TypedDict, total=False):
     """
 
     type: str
-    name: str
+    image: str
     folder: str
-    version: str
     tag: str
     repository: str
-    version_type: str
-    id: int

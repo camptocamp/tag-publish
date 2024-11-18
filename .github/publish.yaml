@@ -20,3 +20,5 @@ docker:
 helm:
   folders:
     - tests
+dispatch:
+  - {}

@@ -223,7 +223,7 @@
     "dispatch": {
       "title": "Dispatch",
       "type": "array",
-      "default": [{}],
+      "default": [],
 
       "items": {
         "title": "dispatch config",

@@ -19,7 +19,7 @@ permissions:
   packages: write
   # To publish Python packages using OIDC
   id-token: write
-  # To publish Helm charts
+  # To publish Helm charts and send repository dispatch notifications
   contents: write
 ```
 
@@ -27,7 +27,7 @@ Install the package in the worklow:
 
 ```yaml
 - name: Install tag-publish
-  run: pip install c2cciutils-publish
+  run: pip install tag-publish
 ```
 
 Do the publishing:
@@ -77,7 +77,7 @@ The configuration file is `.github/publish.yaml`, the schema is `https://raw.git
 
 ### Dry run
 
-Dry run publish: `GITHUB_REF=... c2cciutils-publish --dry-run ...`
+Dry run publish: `GITHUB_REF=... tag-publish --dry-run ...`
 
 ### To pypi
 
@@ -245,6 +245,43 @@ git checkout --orphan gh-pages
 git reset --hard
 git commit --allow-empty -m "Initialize gh-pages branch"
 git push origin gh-pages
+```
+
+## Dispatch
+
+The minimal config is like this:
+
+```yaml
+dispatch:
+  - {}
+```
+
+The required permission is `contents: write`.
+
+This will create a repository dispatch of type `published` on own repository with the `content` e.g.:
+
+```json
+{
+  "version": "1.2.3",
+  "version_type": "version_tag",
+  "repository": "camptocamp/tag-publish",
+  "items": [
+    {
+      "type": "docker",
+      "image": "camptocamp/tag-publish",
+      "repository": "ghcr.io",
+      "tag": "1.2.3"
+    },
+    {
+      "type": "pypi",
+      "path": "."
+    },
+    {
+      "type": "helm",
+      "path": "."
+    }
+  ]
+}
 ```
 
 ## Contributing

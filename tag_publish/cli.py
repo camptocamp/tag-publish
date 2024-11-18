@@ -8,7 +8,6 @@ import argparse
 import json
 import os
 import os.path
-import random
 import re
 import subprocess  # nosec
 import sys
@@ -197,7 +196,7 @@ def main() -> None:
         local,
     )
     success &= _handle_helm_publish(args.dry_run, config, version, version_type, github, published_payload)
-    _trigger_dispatch_events(config, published_payload, github)
+    _trigger_dispatch_events(config, version, version_type, published_payload, github)
 
     if not success:
         sys.exit(1)
@@ -228,14 +227,7 @@ def _handle_pypi_publish(
                     print(f"{'Publishing' if publish else 'Checking'} '{folder}' to pypi, skipping (dry run)")
                 else:
                     success &= tag_publish.publish.pip(package, version, version_type, publish, github)
-                    published_payload.append(
-                        {
-                            "type": "pypi",
-                            "folder": folder,
-                            "version": version,
-                            "version_type": version_type,
-                        }
-                    )
+                    published_payload.append({"type": "pypi", "folder": folder})
     return success
 
 
@@ -360,7 +352,6 @@ def _handle_docker_publish(
                                         tag_src,
                                         tags,
                                         images_full,
-                                        version_type,
                                         published_payload,
                                     )
 
@@ -504,39 +495,35 @@ def _handle_helm_publish(
             else:
                 token = os.environ["GITHUB_TOKEN"]
                 success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
-                published_payload.append(
-                    {
-                        "type": "helm",
-                        "folder": folder,
-                        "version": version,
-                        "version_type": version_type,
-                    }
-                )
+                published_payload.append({"type": "helm", "folder": folder})
     return success
 
 
 def _trigger_dispatch_events(
     config: tag_publish.configuration.Configuration,
+    version: str,
+    version_type: str,
     published_payload: list[tag_publish.PublishedPayload],
     github: tag_publish.GH,
 ) -> None:
-    for published in published_payload:
-        for dispatch_config in config.get("dispatch", []):
-            repository = dispatch_config.get("repository")
-            event_type = dispatch_config.get(
-                "event-type", tag_publish.configuration.DISPATCH_EVENT_TYPE_DEFAULT
-            )
+    for dispatch_config in config.get("dispatch", []):
+        repository = dispatch_config.get("repository")
+        event_type = dispatch_config.get("event-type", tag_publish.configuration.DISPATCH_EVENT_TYPE_DEFAULT)
 
-            id_ = random.randint(1, 100000)  # nosec # noqa: S311
-            published["id"] = id_
+        published = {
+            "version": version,
+            "version_type": version_type,
+            "repository": github.repo.full_name,
+            "items": published_payload,
+        }
 
-            if repository:
-                print(f"Triggering {event_type}:{id_} on {repository} with {json.dumps(published)}")
-                github_repo = github.github.get_repo(repository)
-            else:
-                print(f"Triggering {event_type}:{id_} with {json.dumps(published)}")
-                github_repo = github.repo
-            github_repo.create_repository_dispatch(event_type, published)  # type: ignore[arg-type]
+        if repository:
+            print(f"Triggering {event_type} on {repository} with {json.dumps(published)}")
+            github_repo = github.github.get_repo(repository)
+        else:
+            print(f"Triggering {event_type} with {json.dumps(published)}")
+            github_repo = github.repo
+        github_repo.create_repository_dispatch(event_type, {"content": published})
 
 
 if __name__ == "__main__":
