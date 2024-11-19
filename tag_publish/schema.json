@@ -53,8 +53,7 @@
             "github": {
               "server": "ghcr.io",
               "versions": ["version_tag", "version_branch", "rebuild"]
-            },
-            "dockerhub": {}
+            }
           },
           "type": "object",
           "additionalProperties": {
@@ -165,16 +164,91 @@
         }
       }
     },
+    "node": {
+      "title": "node",
+      "description": "Configuration to publish on node",
+      "type": "object",
+      "properties": {
+        "packages": {
+          "description": "The configuration of packages that will be published",
+          "type": "array",
+          "items": {
+            "title": "node package",
+            "description": "The configuration of package that will be published",
+            "type": "object",
+            "properties": {
+              "group": {
+                "description": "The image is in the group, should be used with the --group option of tag-publish script",
+                "title": "node package group",
+                "default": "default",
+                "type": "string"
+              },
+              "folder": {
+                "title": "node package folder",
+                "description": "The folder of the node package",
+                "type": "string",
+                "default": "."
+              }
+            }
+          }
+        },
+        "versions": {
+          "title": "node versions",
+          "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
+          "type": "array",
+          "default": ["version_tag"],
+          "items": {
+            "type": "string"
+          }
+        },
+        "repository": {
+          "title": "Node repository",
+          "description": "The packages repository where we should publish the packages",
+          "default": {
+            "github": {
+              "server": "npm.pkg.github.com"
+            }
+          },
+          "type": "object",
+          "additionalProperties": {
+            "title": "Node repository",
+            "type": "object",
+            "properties": {
+              "server": {
+                "description": "The server URL",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
     "helm": {
       "title": "helm",
       "description": "Configuration to publish Helm charts on GitHub release",
       "type": "object",
       "properties": {
-        "folders": {
-          "description": "The folders that will be published",
+        "packages": {
+          "description": "The configuration of packages that will be published",
           "type": "array",
           "items": {
-            "type": "string"
+            "title": "helm package",
+            "description": "The configuration of package that will be published",
+            "type": "object",
+            "properties": {
+              "group": {
+                "description": "The image is in the group, should be used with the --group option of tag-publish script",
+                "title": "helm package group",
+                "default": "default",
+                "type": "string"
+              },
+              "folder": {
+                "title": "helm package folder",
+                "description": "The folder of the pypi package",
+                "type": "string",
+                "default": "."
+              }
+            }
           }
         },
         "versions": {
@@ -219,6 +293,7 @@
     },
     "docker": { "$ref": "#/definitions/docker" },
     "pypi": { "$ref": "#/definitions/pypi" },
+    "node": { "$ref": "#/definitions/node" },
     "helm": { "$ref": "#/definitions/helm" },
     "dispatch": {
       "title": "Dispatch",

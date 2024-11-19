@@ -183,6 +183,9 @@ def main() -> None:
     success &= _handle_pypi_publish(
         args.group, args.dry_run, config, version, version_type, github, published_payload
     )
+    success &= _handle_node_publish(
+        args.group, args.dry_run, config, version, version_type, published_payload
+    )
     success &= _handle_docker_publish(
         args.group,
         args.dry_run,
@@ -195,7 +198,9 @@ def main() -> None:
         published_payload,
         local,
     )
-    success &= _handle_helm_publish(args.dry_run, config, version, version_type, github, published_payload)
+    success &= _handle_helm_publish(
+        args.group, args.dry_run, config, version, version_type, github, published_payload
+    )
     _trigger_dispatch_events(config, version, version_type, published_payload, github)
 
     if not success:
@@ -229,6 +234,38 @@ def _handle_pypi_publish(
                     success &= tag_publish.publish.pip(package, version, version_type, publish, github)
                     if publish:
                         published_payload.append({"type": "pypi", "folder": folder})
+    return success
+
+
+def _handle_node_publish(
+    group: str,
+    dry_run: bool,
+    config: tag_publish.configuration.Configuration,
+    version: str,
+    version_type: str,
+    published_payload: list[tag_publish.PublishedPayload],
+) -> bool:
+    success = True
+    node_config = config.get("node", {})
+    if node_config:
+        for package in node_config.get("packages", []):
+            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
+                publish = version_type in node_config.get(
+                    "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
+                )
+                folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
+                for repo_name, repo_config in node_config.get("repository", {}).items():
+                    if dry_run:
+                        print(
+                            f"{'Publishing' if publish else 'Checking'} '{folder}' to {repo_name}, "
+                            "skipping (dry run)"
+                        )
+                    else:
+                        success &= tag_publish.publish.node(
+                            package, version, version_type, repo_config, publish
+                        )
+                        if publish:
+                            published_payload.append({"type": "node", "folder": folder})
     return success
 
 
@@ -451,6 +488,7 @@ def _handle_docker_publish(
 
 
 def _handle_helm_publish(
+    group: str,
     dry_run: bool,
     config: tag_publish.configuration.Configuration,
     version: str,
@@ -496,13 +534,19 @@ def _handle_helm_publish(
             versions[-1] = str(int(versions[-1]) + 1)
             version = ".".join(versions)
 
-        for folder in helm_config["folders"]:
-            if dry_run:
-                print(f"Publishing '{folder}' to helm, skipping (dry run)")
-            else:
-                token = os.environ["GITHUB_TOKEN"]
-                success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
-                published_payload.append({"type": "helm", "folder": folder})
+        for package in helm_config["packages"]:
+            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
+                publish = version_type in helm_config.get(
+                    "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
+                )
+                if publish:
+                    folder = package.get("folder", tag_publish.configuration.HELM_PACKAGE_FOLDER_DEFAULT)
+                    if dry_run:
+                        print(f"Publishing '{folder}' to helm, skipping (dry run)")
+                    else:
+                        token = os.environ["GITHUB_TOKEN"]
+                        success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
+                        published_payload.append({"type": "helm", "folder": folder})
     return success
 
 

@@ -33,6 +33,13 @@ class Configuration(TypedDict, total=False):
     Configuration to publish on pypi
     """
 
+    node: "Node"
+    """
+    node.
+
+    Configuration to publish on node
+    """
+
     helm: "Helm"
     """
     helm.
@@ -82,8 +89,7 @@ DOCKER_LATEST_DEFAULT = True
 
 
 DOCKER_REPOSITORY_DEFAULT = {
-    "github": {"server": "ghcr.io", "versions": ["version_tag", "version_branch", "rebuild"]},
-    "dockerhub": {},
+    "github": {"server": "ghcr.io", "versions": ["version_tag", "version_branch", "rebuild"]}
 }
 """ Default value of the field path 'Docker repository' """
 
@@ -152,7 +158,6 @@ class Docker(TypedDict, total=False):
     The repository where we should publish the images
 
     default:
-      dockerhub: {}
       github:
         server: ghcr.io
         versions:
@@ -220,6 +225,14 @@ class DockerRepository(TypedDict, total=False):
     """
 
 
+HELM_PACKAGE_FOLDER_DEFAULT = "."
+""" Default value of the field path 'helm package folder' """
+
+
+HELM_PACKAGE_GROUP_DEFAULT = "default"
+""" Default value of the field path 'helm package group' """
+
+
 HELM_VERSIONS_DEFAULT = ["version_tag"]
 """ Default value of the field path 'helm versions' """
 
@@ -231,8 +244,8 @@ class Helm(TypedDict, total=False):
     Configuration to publish Helm charts on GitHub release
     """
 
-    folders: List[str]
-    """ The folders that will be published """
+    packages: List["HelmPackage"]
+    """ The configuration of packages that will be published """
 
     versions: List[str]
     """
@@ -243,6 +256,113 @@ class Helm(TypedDict, total=False):
     default:
       - version_tag
     """
+
+
+class HelmPackage(TypedDict, total=False):
+    """
+    helm package.
+
+    The configuration of package that will be published
+    """
+
+    group: str
+    """
+    helm package group.
+
+    The image is in the group, should be used with the --group option of tag-publish script
+
+    default: default
+    """
+
+    folder: str
+    """
+    helm package folder.
+
+    The folder of the pypi package
+
+    default: .
+    """
+
+
+NODE_PACKAGE_FOLDER_DEFAULT = "."
+""" Default value of the field path 'node package folder' """
+
+
+NODE_PACKAGE_GROUP_DEFAULT = "default"
+""" Default value of the field path 'node package group' """
+
+
+NODE_REPOSITORY_DEFAULT = {"github": {"server": "npm.pkg.github.com"}}
+""" Default value of the field path 'node repository' """
+
+
+NODE_VERSIONS_DEFAULT = ["version_tag"]
+""" Default value of the field path 'node versions' """
+
+
+class Node(TypedDict, total=False):
+    """
+    node.
+
+    Configuration to publish on node
+    """
+
+    packages: List["NodePackage"]
+    """ The configuration of packages that will be published """
+
+    versions: List[str]
+    """
+    node versions.
+
+    The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
+
+    default:
+      - version_tag
+    """
+
+    repository: Dict[str, "NodeRepository"]
+    """
+    Node repository.
+
+    The packages repository where we should publish the packages
+
+    default:
+      github:
+        server: npm.pkg.github.com
+    """
+
+
+class NodePackage(TypedDict, total=False):
+    """
+    node package.
+
+    The configuration of package that will be published
+    """
+
+    group: str
+    """
+    node package group.
+
+    The image is in the group, should be used with the --group option of tag-publish script
+
+    default: default
+    """
+
+    folder: str
+    """
+    node package folder.
+
+    The folder of the node package
+
+    default: .
+    """
+
+
+class NodeRepository(TypedDict, total=False):
+    """Node repository."""
+
+    server: str
+    """ The server URL """
 
 
 PIP_PACKAGE_GROUP_DEFAULT = "default"
