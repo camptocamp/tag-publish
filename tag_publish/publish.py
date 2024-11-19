@@ -112,7 +112,7 @@ def node(
     publish: bool,
 ) -> bool:
     """
-    Publish to npm.
+    Publish node package to npm.
 
     Arguments:
         version: The version that will be published
@@ -124,19 +124,18 @@ def node(
         github: The GitHub helper
 
     """
-    del version_type
-
     folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
     print(f"::group::{'Publishing' if publish else 'Checking'} '{folder}' to npm")
     sys.stdout.flush()
     sys.stderr.flush()
 
     try:
-        with open(os.path.join(folder, "package.json"), encoding="utf-8") as open_file:
-            package_json = json.loads(open_file.read())
-        package_json["version"] = version
-        with open(os.path.join(folder, "package.json"), "w", encoding="utf-8") as open_file:
-            open_file.write(json.dumps(package_json, indent=2) + "\n")
+        if version_type == "version_tag":
+            with open(os.path.join(folder, "package.json"), encoding="utf-8") as open_file:
+                package_json = json.loads(open_file.read())
+            package_json["version"] = version
+            with open(os.path.join(folder, "package.json"), "w", encoding="utf-8") as open_file:
+                open_file.write(json.dumps(package_json, indent=2) + "\n")
 
         cwd = os.path.abspath(folder)
 

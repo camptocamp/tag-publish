@@ -249,12 +249,18 @@ def _handle_node_publish(
     node_config = config.get("node", {})
     if node_config:
         for package in node_config.get("packages", []):
-            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
+            if package.get("group", tag_publish.configuration.NODE_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in node_config.get(
-                    "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
+                    "versions", tag_publish.configuration.NODE_VERSIONS_DEFAULT
                 )
-                folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
-                for repo_name, repo_config in node_config.get("repository", {}).items():
+                folder = package.get("folder", tag_publish.configuration.NODE_PACKAGE_FOLDER_DEFAULT)
+                for repo_name, repo_config in node_config.get(
+                    "repository",
+                    cast(
+                        dict[str, tag_publish.configuration.NodeRepository],
+                        tag_publish.configuration.NODE_REPOSITORY_DEFAULT,
+                    ),
+                ).items():
                     if dry_run:
                         print(
                             f"{'Publishing' if publish else 'Checking'} '{folder}' to {repo_name}, "

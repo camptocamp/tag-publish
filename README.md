@@ -79,7 +79,7 @@ The configuration file is `.github/publish.yaml`, the schema is `https://raw.git
 
 Dry run publish: `GITHUB_REF=... tag-publish --dry-run ...`
 
-### To pypi
+### Python package to pypi repository
 
 Minimum configuration:
 
@@ -172,7 +172,7 @@ build: ## Build the Docker images
     docker build --build-arg=VERSION=$(VERSION) --tag=$(GITHUB_REPOSITORY) .
 ```
 
-### To Docker registry
+### Docker image to registry
 
 The minimal config is like this:
 
@@ -222,14 +222,28 @@ If the `ci/dpkg-versions.yaml` or `.github/dpkg-versions.yaml` file is present, 
 
 The versions will be updated by [GHCI](https://github.com/camptocamp/github-app-geo-project/) application.
 
+### Node package to npm repository
+
+Minimum configuration:
+
+```yaml
+node:
+  packages:
+    - {}
+```
+
+If the repository server is `npm.pkg.github.com` we will do a login using `GITHUB_TOKEN`.
+
+By default the package will be published only on tag.
+
 ### HELM
 
 The minimal config is like this:
 
 ```yaml
 helm:
-  folders:
-    - .
+  packages:
+    - {}
 ```
 
 This will publish the `helm` charts in the current folder using [chart releaser](https://github.com/helm/chart-releaser).
