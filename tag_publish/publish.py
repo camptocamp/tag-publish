@@ -4,6 +4,7 @@ The publishing functions.
 
 import datetime
 import glob
+import json
 import os
 import re
 import subprocess  # nosec
@@ -94,6 +95,73 @@ def pip(
         cmd += glob.glob(os.path.join(cwd, "dist/*.whl"))
         cmd += glob.glob(os.path.join(cwd, "dist/*.tar.gz"))
         subprocess.check_call(cmd)
+        print("::endgroup::")
+    except subprocess.CalledProcessError as exception:
+        print(f"Error: {exception}")
+        print("::endgroup::")
+        print("::error::With error")
+        return False
+    return True
+
+
+def node(
+    package: tag_publish.configuration.NodePackage,
+    version: str,
+    version_type: str,
+    repo_config: tag_publish.configuration.NodeRepository,
+    publish: bool,
+) -> bool:
+    """
+    Publish to npm.
+
+    Arguments:
+        version: The version that will be published
+        version_type: Describe the kind of release we do: rebuild (specified using --type), version_tag,
+                    version_branch, feature_branch, feature_tag (for pull request)
+        repo_config: The repository configuration
+        publish: If False only check the package
+        package: The package configuration
+        github: The GitHub helper
+
+    """
+    del version_type
+
+    folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
+    print(f"::group::{'Publishing' if publish else 'Checking'} '{folder}' to npm")
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    try:
+        with open(os.path.join(folder, "package.json"), encoding="utf-8") as open_file:
+            package_json = json.loads(open_file.read())
+        package_json["version"] = version
+        with open(os.path.join(folder, "package.json"), "w", encoding="utf-8") as open_file:
+            open_file.write(json.dumps(package_json, indent=2) + "\n")
+
+        cwd = os.path.abspath(folder)
+
+        is_github = repo_config["server"] == "npm.pkg.github.com"
+        old_npmrc = None
+        npmrc_filename = os.path.expanduser("~/.npmrc")
+        env = {**os.environ}
+        if is_github:
+            old_npmrc = None
+            if os.path.exists(npmrc_filename):
+                with open(npmrc_filename, encoding="utf-8") as open_file:
+                    old_npmrc = open_file.read()
+            with open(npmrc_filename, "w", encoding="utf-8") as open_file:
+                open_file.write(f"registry=https://{repo_config['server']}\n")
+                open_file.write("always-auth=true\n")
+            env["NODE_AUTH_TOKEN"] = os.environ["GITHUB_TOKEN"]
+
+        subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"])], cwd=cwd, check=True, env=env)
+
+        if is_github:
+            if old_npmrc is None:
+                os.remove(npmrc_filename)
+            else:
+                with open(npmrc_filename, "w", encoding="utf-8") as open_file:
+                    open_file.write(old_npmrc)
         print("::endgroup::")
     except subprocess.CalledProcessError as exception:
         print(f"Error: {exception}")
