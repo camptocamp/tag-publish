@@ -248,6 +248,22 @@ def _handle_node_publish(
     success = True
     node_config = config.get("node", {})
     if node_config:
+        if version_type == "version_branch":
+            last_tag = (
+                subprocess.run(
+                    ["git", "describe", "--abbrev=0", "--tags"], check=True, stdout=subprocess.PIPE
+                )
+                .stdout.strip()
+                .decode()
+            )
+            commits_number = subprocess.run(
+                ["git", "rev-list", "--count", f"{last_tag}..HEAD"],
+                check=True,
+                stdout=subprocess.PIPE,
+            )
+
+            version = f"{last_tag}.{commits_number}"
+
         for package in node_config.get("packages", []):
             if package.get("group", tag_publish.configuration.NODE_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in node_config.get(
@@ -290,6 +306,8 @@ def _handle_docker_publish(
     success = True
     docker_config = config.get("docker", {})
     if docker_config:
+        sys.stdout.flush()
+        sys.stderr.flush()
         if docker_config.get("auto_login", tag_publish.configuration.DOCKER_AUTO_LOGIN_DEFAULT):
             subprocess.run(
                 [
@@ -504,9 +522,7 @@ def _handle_helm_publish(
 ) -> bool:
     success = True
     helm_config = config.get("helm", {})
-    if helm_config.get("folders") and version_type in helm_config.get(
-        "versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT
-    ):
+    if helm_config.get("packages"):
         tag_publish.download_application("helm/chart-releaser")
 
         owner = github.repo.owner.login
@@ -524,35 +540,31 @@ def _handle_helm_publish(
                 .stdout.strip()
                 .decode()
             )
-            expression = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
-            while expression.match(last_tag) is None:
-                last_tag = (
-                    subprocess.run(
-                        ["git", "describe", "--abbrev=0", "--tags", f"{last_tag}^"],
-                        check=True,
-                        stdout=subprocess.PIPE,
-                    )
-                    .stdout.strip()
-                    .decode()
-                )
+            commits_number = subprocess.run(
+                ["git", "rev-list", "--count", f"{last_tag}..HEAD"],
+                check=True,
+                stdout=subprocess.PIPE,
+            )
 
-            versions = last_tag.split(".")
-            versions[-1] = str(int(versions[-1]) + 1)
-            version = ".".join(versions)
+            version = f"{last_tag}.{commits_number}"
 
         for package in helm_config["packages"]:
-            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
-                publish = version_type in helm_config.get(
-                    "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
-                )
+            if package.get("group", tag_publish.configuration.HELM_PACKAGE_GROUP_DEFAULT) == group:
+                versions_type = helm_config.get("versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT)
+                publish = version_type in versions_type
+                folder = package.get("folder", tag_publish.configuration.HELM_PACKAGE_FOLDER_DEFAULT)
                 if publish:
-                    folder = package.get("folder", tag_publish.configuration.HELM_PACKAGE_FOLDER_DEFAULT)
                     if dry_run:
                         print(f"Publishing '{folder}' to helm, skipping (dry run)")
                     else:
                         token = os.environ["GITHUB_TOKEN"]
                         success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
                         published_payload.append({"type": "helm", "folder": folder})
+                else:
+                    print(
+                        f"::notice::The folder '{folder}' will be published as helm on version types: "
+                        f"{', '.join(versions_type)}"
+                    )
     return success
 
 

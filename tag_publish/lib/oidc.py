@@ -162,7 +162,7 @@ def pypi_login() -> None:
     pypirc_filename = os.path.expanduser("~/.pypirc")
 
     if os.path.exists(pypirc_filename):
-        print(f"::info::{pypirc_filename} already exists; consider as already logged in.")  # noqa: E702
+        print(f"::notice::{pypirc_filename} already exists; consider as already logged in.")  # noqa: E702
         return
 
     if "ACTIONS_ID_TOKEN_REQUEST_TOKEN" not in os.environ:
