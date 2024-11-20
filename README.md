@@ -15,7 +15,7 @@ Set the permissions:
 
 ```yaml
 permissions:
-  # To publish Docker images on GHCR
+  # To publish Docker images on GHCR and on npm.pkg.github.com
   packages: write
   # To publish Python packages using OIDC
   id-token: write
@@ -233,6 +233,8 @@ node:
 ```
 
 If the repository server is `npm.pkg.github.com` we will do a login using `GITHUB_TOKEN`.
+
+To publish on `npm.pkg.github.com` you requires the permissions are `packages: write`.
 
 By default the package will be published only on tag.
 

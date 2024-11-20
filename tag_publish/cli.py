@@ -5,7 +5,6 @@ The publish script.
 """
 
 import argparse
-import json
 import os
 import os.path
 import re
@@ -515,11 +514,13 @@ def _trigger_dispatch_events(
         }
 
         if repository:
-            print(f"Triggering {event_type} on {repository} with {json.dumps(published)}")
+            print(f"::group::Triggering {event_type} on {repository}")
             github_repo = github.github.get_repo(repository)
         else:
-            print(f"Triggering {event_type} with {json.dumps(published)}")
+            print(f"::group::Triggering {event_type}")
             github_repo = github.repo
+        print(yaml.dump(published, Dumper=yaml.SafeDumper, default_flow_style=False))
+        print("::endgroup::")
         github_repo.create_repository_dispatch(event_type, {"content": published})
 
 
