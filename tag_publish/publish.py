@@ -142,18 +142,17 @@ def node(
         is_github = repo_config["server"] == "npm.pkg.github.com"
         old_npmrc = None
         npmrc_filename = os.path.expanduser("~/.npmrc")
-        env = {**os.environ}
         if is_github:
             old_npmrc = None
             if os.path.exists(npmrc_filename):
                 with open(npmrc_filename, encoding="utf-8") as open_file:
                     old_npmrc = open_file.read()
             with open(npmrc_filename, "w", encoding="utf-8") as open_file:
+                open_file.write(f"//npm.pkg.github.com/:_authToken={os.environ['GITHUB_TOKEN']}\n")
                 open_file.write(f"registry=https://{repo_config['server']}\n")
                 open_file.write("always-auth=true\n")
-            env["NODE_AUTH_TOKEN"] = os.environ["GITHUB_TOKEN"]
 
-        subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"])], cwd=cwd, check=True, env=env)
+        subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"])], cwd=cwd, check=True)
 
         if is_github:
             if old_npmrc is None:
@@ -201,7 +200,7 @@ def docker(
 
     """
     print(
-        f"::group::Publishing {image_config['name']} to the server {name} "
+        f"::group::Publishing {image_config['name']} to the {name} registry "
         f"using the tags {', '.join(dst_tags)}"
     )
     sys.stdout.flush()
