@@ -73,7 +73,6 @@ def main() -> None:
         "--docker-versions",
         help="The versions to publish on Docker registry, comma separated, ex: 'x,x.y,x.y.z,latest'.",
     )
-    parser.add_argument("--snyk-version", help="The version to publish to Snyk")
     parser.add_argument("--branch", help="The branch from which to compute the version")
     parser.add_argument("--tag", help="The tag from which to compute the version")
     parser.add_argument("--dry-run", action="store_true", help="Don't do the publish")
@@ -190,7 +189,6 @@ def main() -> None:
         args.group,
         args.dry_run,
         args.docker_versions,
-        args.snyk_version,
         config,
         version,
         version_type,
@@ -295,7 +293,6 @@ def _handle_docker_publish(
     group: str,
     dry_run: bool,
     docker_versions: str,
-    snyk_version: str,
     config: tag_publish.configuration.Configuration,
     version: str,
     version_type: str,
@@ -358,7 +355,6 @@ def _handle_docker_publish(
 
         images_src: set[str] = set()
         images_full: list[str] = []
-        images_snyk: set[str] = set()
         versions = docker_versions.split(",") if docker_versions else [version]
         for image_conf in docker_config.get("images", []):
             if image_conf.get("group", tag_publish.configuration.DOCKER_IMAGE_GROUP_DEFAULT) == group:
@@ -366,25 +362,6 @@ def _handle_docker_publish(
                     tag_src = tag_config.format(version="latest")
                     image_source = f"{image_conf['name']}:{tag_src}"
                     images_src.add(image_source)
-                    tag_snyk = tag_config.format(version=snyk_version or version).lower()
-                    image_snyk = f"{image_conf['name']}:{tag_snyk}"
-
-                    # Workaround sine we have the business plan
-                    image_snyk = f"{image_conf['name']}_{tag_snyk}"
-
-                    if not dry_run:
-                        subprocess.run(["docker", "tag", image_source, image_snyk], check=True)
-                    images_snyk.add(image_snyk)
-                    if tag_snyk != tag_src and not dry_run:
-                        subprocess.run(
-                            [
-                                "docker",
-                                "tag",
-                                image_source,
-                                f"{image_conf['name']}:{tag_snyk}",
-                            ],
-                            check=True,
-                        )
 
                     for name, conf in docker_config.get(
                         "repository",
@@ -422,55 +399,6 @@ def _handle_docker_publish(
 
         if dry_run:
             sys.exit(0)
-
-        try:
-            has_gopass = subprocess.run(["gopass", "--version"]).returncode == 0  # nosec # pylint: disable=subprocess-run-check
-        except FileNotFoundError:
-            has_gopass = False
-        if "SNYK_TOKEN" in os.environ or has_gopass:
-            snyk_exec, env = tag_publish.snyk_exec()
-            for image in images_snyk:
-                print(f"::group::Snyk check {image}")
-                sys.stdout.flush()
-                sys.stderr.flush()
-                try:
-                    if version_type in ("version_branch", "version_tag"):
-                        monitor_args = docker_config.get("snyk", {}).get(
-                            "monitor_args",
-                            tag_publish.configuration.DOCKER_SNYK_MONITOR_ARGS_DEFAULT,
-                        )
-                        if monitor_args is not False:
-                            subprocess.run(  # pylint: disable=subprocess-run-check
-                                [
-                                    snyk_exec,
-                                    "container",
-                                    "monitor",
-                                    *monitor_args,
-                                    # Available only on the business plan
-                                    # f"--project-tags=tag={image.split(':')[-1]}",
-                                    image,
-                                ],
-                                env=env,
-                            )
-                    test_args = docker_config.get("snyk", {}).get(
-                        "test_args", tag_publish.configuration.DOCKER_SNYK_TEST_ARGS_DEFAULT
-                    )
-                    snyk_error = False
-                    if test_args is not False:
-                        proc = subprocess.run(
-                            [snyk_exec, "container", "test", *test_args, image],
-                            check=False,
-                            env=env,
-                        )
-                        if proc.returncode != 0:
-                            snyk_error = True
-                    print("::endgroup::")
-                    if snyk_error:
-                        print("::error::Critical vulnerability found by Snyk in the published image.")
-                except subprocess.CalledProcessError as exception:
-                    print(f"Error: {exception}")
-                    print("::endgroup::")
-                    print("::error::With error")
 
         versions_config, dpkg_config_found = tag_publish.lib.docker.get_versions_config()
         dpkg_success = True

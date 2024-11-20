@@ -279,23 +279,6 @@ def download_application(application_name: str, binary_filename: Optional[str] =
     return binary_full_filename
 
 
-def snyk_exec() -> tuple[str, dict[str, str]]:
-    """Get the Snyk cli executable path."""
-    env = {**os.environ}
-    env["FORCE_COLOR"] = "true"
-
-    snyk_bin = download_application("snyk/cli", "snyk")
-
-    if "SNYK_TOKEN" not in env:
-        env["SNYK_TOKEN"] = subprocess.run(
-            ["gopass", "show", "gs/ci/snyk/token"], check=True, stdout=subprocess.PIPE, encoding="utf-8"
-        ).stdout.strip()
-    if "SNYK_ORG" in env:
-        subprocess.run([snyk_bin, "config", "set", f"org={env['SNYK_ORG']}"], check=True, env=env)
-
-    return snyk_bin, env
-
-
 class PublishedPayload(TypedDict, total=False):
     """
     The payload to send to the dispatch event.

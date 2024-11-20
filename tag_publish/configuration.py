@@ -2,7 +2,7 @@
 Automatically generated file from a JSON schema.
 """
 
-from typing import Any, Dict, List, Literal, TypedDict, Union
+from typing import Any, Dict, List, TypedDict
 
 
 class Configuration(TypedDict, total=False):
@@ -98,14 +98,6 @@ DOCKER_REPOSITORY_VERSIONS_DEFAULT = ["version_tag", "version_branch", "rebuild"
 """ Default value of the field path 'Docker repository versions' """
 
 
-DOCKER_SNYK_MONITOR_ARGS_DEFAULT = ["--app-vulns"]
-""" Default value of the field path 'Docker snyk monitor_args' """
-
-
-DOCKER_SNYK_TEST_ARGS_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
-""" Default value of the field path 'Docker snyk test_args' """
-
-
 # | dispatch config.
 # |
 # | Send a dispatch event to an other repository
@@ -174,9 +166,6 @@ class Docker(TypedDict, total=False):
 
     default: False
     """
-
-    snyk: "_DockerSnyk"
-    """ Checks the published images with Snyk """
 
 
 class DockerImage(TypedDict, total=False):
@@ -454,81 +443,6 @@ VersionTransform = List["_VersionTransformItem"]
 Version transform.
 
 A version transformer definition
-"""
-
-
-_DOCKER_SNYK_MONITOR_ARGS_ONEOF0_DEFAULT = ["--app-vulns"]
-""" Default value of the field path 'Docker Snyk monitor args oneof0' """
-
-
-_DOCKER_SNYK_MONITOR_ARGS_ONEOF1_DEFAULT = ["--app-vulns"]
-""" Default value of the field path 'Docker Snyk monitor args oneof1' """
-
-
-_DOCKER_SNYK_TEST_ARGS_ONEOF0_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
-""" Default value of the field path 'Docker Snyk test args oneof0' """
-
-
-_DOCKER_SNYK_TEST_ARGS_ONEOF1_DEFAULT = ["--app-vulns", "--severity-threshold=critical"]
-""" Default value of the field path 'Docker Snyk test args oneof1' """
-
-
-class _DockerSnyk(TypedDict, total=False):
-    """Checks the published images with Snyk"""
-
-    monitor_args: Union["_DockerSnykMonitorArgsOneof0", "_DockerSnykMonitorArgsOneof1"]
-    """
-    Docker Snyk monitor args.
-
-    The arguments to pass to the Snyk container monitor command
-
-    default:
-      - --app-vulns
-
-    Aggregation type: oneOf
-    """
-
-    test_args: Union["_DockerSnykTestArgsOneof0", "_DockerSnykTestArgsOneof1"]
-    """
-    Docker Snyk test args.
-
-    The arguments to pass to the Snyk container test command
-
-    default:
-      - --app-vulns
-      - --severity-threshold=critical
-
-    Aggregation type: oneOf
-    """
-
-
-_DockerSnykMonitorArgsOneof0 = List[str]
-"""
-default:
-  - --app-vulns
-"""
-
-
-_DockerSnykMonitorArgsOneof1 = Literal[False]
-"""
-default:
-  - --app-vulns
-"""
-
-
-_DockerSnykTestArgsOneof0 = List[str]
-"""
-default:
-  - --app-vulns
-  - --severity-threshold=critical
-"""
-
-
-_DockerSnykTestArgsOneof1 = Literal[False]
-"""
-default:
-  - --app-vulns
-  - --severity-threshold=critical
 """
 
 
