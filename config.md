@@ -1,6 +1,6 @@
-# configuration
+# Tag publish configuration
 
-_Tag Publish configuration file_
+_Tag Publish configuration file (.github/publish.yaml)_
 
 ## Properties
 

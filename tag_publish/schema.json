@@ -2,8 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://raw.githubusercontent.com/camptocamp/tilecloud-chain/master/tilecloud_chain/schema.json",
   "type": "object",
-  "title": "configuration",
-  "description": "Tag Publish configuration file",
+  "title": "Tag publish configuration",
+  "description": "Tag Publish configuration file (.github/publish.yaml)",
   "additionalProperties": false,
   "definitions": {
     "docker": {

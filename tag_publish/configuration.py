@@ -7,9 +7,9 @@ from typing import Any, Dict, List, TypedDict
 
 class Configuration(TypedDict, total=False):
     """
-    configuration.
+    Tag publish configuration.
 
-    Tag Publish configuration file
+    Tag Publish configuration file (.github/publish.yaml)
     """
 
     version: "Version"
@@ -61,7 +61,7 @@ DISPATCH_CONFIG_DEFAULT: Dict[str, Any] = {}
 
 
 DISPATCH_DEFAULT: List[Any] = []
-""" Default value of the field path 'configuration dispatch' """
+""" Default value of the field path 'Tag publish configuration dispatch' """
 
 
 DISPATCH_EVENT_TYPE_DEFAULT = "published"

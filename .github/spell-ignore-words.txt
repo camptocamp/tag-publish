@@ -1,2 +1,4 @@
 pypi
 Snyk
+github
+publish.yaml
