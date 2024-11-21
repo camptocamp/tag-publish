@@ -41,6 +41,10 @@ Do the publishing:
 
 ## New version
 
+To create a new version you should create a Git tag with the version number.
+
+## New stabilization branch
+
 To create a new minor version you just should run `tag-publish-new --version=<version>`.
 
 This will create the stabilization branch and will create a new pull request to update
@@ -53,6 +57,16 @@ You are welcome to run `tag-publish-new --help` to see what's it's done.
 Note that it didn't create a tag, you should do it manually.
 
 To create a patch version you should just create tag.
+
+## Kind of publishing
+
+This tool can publish on different kind of versions:
+
+- `version_tag`: Related to a Git tag.
+- `version_branch`: Related to a stabilization branch (including the default branch).
+- `feature_branch`: Related to a feature branch or a pull request.
+
+We can also publish on different kind of versions like `rebuild` by using the `--type` argument.
 
 ## SECURITY.md
 
