@@ -281,7 +281,12 @@ def _handle_node_publish(
                         )
                     else:
                         success &= tag_publish.publish.node(
-                            package, version, version_type, repo_config, publish
+                            package,
+                            version,
+                            version_type,
+                            repo_config,
+                            publish,
+                            node_config.get("args", tag_publish.configuration.NODE_ARGS_DEFAULT),
                         )
                         if publish:
                             published_payload.append({"type": "node", "folder": folder})
