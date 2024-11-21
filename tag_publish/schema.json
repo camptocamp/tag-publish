@@ -186,6 +186,15 @@
               }
             }
           }
+        },
+        "args": {
+          "title": "Node args",
+          "description": "The arguments to pass to the publish command",
+          "type": "array",
+          "default": ["--provenance"],
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

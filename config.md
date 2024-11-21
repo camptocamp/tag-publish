@@ -51,6 +51,8 @@ _Tag Publish configuration file_
   - **`repository`** _(object)_: The packages repository where we should publish the packages. Can contain additional properties. Default: `{"github": {"server": "npm.pkg.github.com"}}`.
     - **Additional properties** _(object)_
       - **`server`** _(string)_: The server URL.
+  - **`args`** _(array)_: The arguments to pass to the publish command. Default: `["--provenance"]`.
+    - **Items** _(string)_
 - <a id="definitions/helm"></a>**`helm`** _(object)_: Configuration to publish Helm charts on GitHub release.
   - **`packages`** _(array)_: The configuration of packages that will be published.
     - **Items** _(object)_: The configuration of package that will be published.

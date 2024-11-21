@@ -234,7 +234,7 @@ node:
 
 If the repository server is `npm.pkg.github.com` we will do a login using `GITHUB_TOKEN`.
 
-To publish on `npm.pkg.github.com` you requires the permissions are `packages: write`.
+To publish on `npm.pkg.github.com` you requires the permissions are `packages: write`, and the `id-token: write` for the provenance.
 
 By default the package will be published only on tag.
 

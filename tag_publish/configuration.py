@@ -273,6 +273,10 @@ class HelmPackage(TypedDict, total=False):
     """
 
 
+NODE_ARGS_DEFAULT = ["--provenance"]
+""" Default value of the field path 'node args' """
+
+
 NODE_PACKAGE_FOLDER_DEFAULT = "."
 """ Default value of the field path 'node package folder' """
 
@@ -318,6 +322,16 @@ class Node(TypedDict, total=False):
     default:
       github:
         server: npm.pkg.github.com
+    """
+
+    args: List[str]
+    """
+    Node args.
+
+    The arguments to pass to the publish command
+
+    default:
+      - --provenance
     """
 
 

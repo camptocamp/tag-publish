@@ -110,6 +110,7 @@ def node(
     version_type: str,
     repo_config: tag_publish.configuration.NodeRepository,
     publish: bool,
+    args: list[str],
 ) -> bool:
     """
     Publish node package to npm.
@@ -122,6 +123,7 @@ def node(
         publish: If False only check the package
         package: The package configuration
         github: The GitHub helper
+        args: The additional arguments to pass to npm publish
 
     """
     folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
@@ -152,7 +154,7 @@ def node(
                 open_file.write(f"registry=https://{repo_config['server']}\n")
                 open_file.write("always-auth=true\n")
 
-        subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"])], cwd=cwd, check=True)
+        subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"]), *args], cwd=cwd, check=True)
 
         if is_github:
             if old_npmrc is None:
