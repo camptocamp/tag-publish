@@ -80,6 +80,10 @@ jobs:
 
       - run: docker build --tag camptocamp/tag-publish tests
 
+      - name: Publish dry-run
+        run: poetry run tag-publish --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish
         run: poetry run tag-publish
         env:

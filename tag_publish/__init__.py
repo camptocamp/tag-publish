@@ -13,7 +13,6 @@ from typing import Any, Optional, TypedDict, cast, overload
 import applications_download
 import github
 import jsonschema_validator
-import requests
 import ruamel.yaml
 import security_md
 import yaml
@@ -59,17 +58,27 @@ class GH:
         self.default_branch = self.repo.default_branch
 
 
-def get_security_md(gh: GH) -> security_md.Security:
+def get_security_md(gh: GH, local: bool) -> security_md.Security:
     """
     Get the SECURITY.md file.
 
     Arguments:
         gh: The GitHub helper
+        local: If we should use the local file
 
     """
+    if local:
+        if os.path.exists("SECURITY.md"):
+            print("Using the local SECURITY.md file")
+            with open("SECURITY.md", encoding="utf-8") as open_file:
+                return security_md.Security(open_file.read())
+        print("No local SECURITY.md file")
+        return security_md.Security("")
+
     try:
         security_file = gh.repo.get_contents("SECURITY.md")
         assert isinstance(security_file, github.ContentFile.ContentFile)
+        print("Using SECURITY.md file from the default branch")
         return security_md.Security(security_file.decoded_content.decode("utf-8"))
     except github.GithubException as exception:
         if exception.status == 404:
@@ -79,27 +88,7 @@ def get_security_md(gh: GH) -> security_md.Security:
             raise exception
 
 
-def merge(default_config: Any, config: Any) -> Any:
-    """
-    Deep merge the dictionaries (on dictionaries only, not on arrays).
-
-    Arguments:
-        default_config: The default config that will be applied
-        config: The base config, will be modified
-
-    """
-    if not isinstance(default_config, dict) or not isinstance(config, dict):
-        return config
-
-    for key in default_config:
-        if key not in config:
-            config[key] = default_config[key]
-        else:
-            merge(default_config[key], config[key])
-    return config
-
-
-def get_config(gh: GH) -> tag_publish.configuration.Configuration:
+def get_config() -> tag_publish.configuration.Configuration:
     """
     Get the configuration, with project and auto detections.
     """
@@ -113,21 +102,6 @@ def get_config(gh: GH) -> tag_publish.configuration.Configuration:
             yaml_ = ruamel.yaml.YAML()
             config = yaml_.load(open_file)
             jsonschema_validator.validate(".github/publish.yaml", cast(dict[str, Any], config), schema)
-
-    merge(
-        {
-            "version": {
-                "tag_to_version_re": [
-                    {"from": r"([0-9]+.[0-9]+.[0-9]+)", "to": r"\1"},
-                ],
-                "branch_to_version_re": [
-                    {"from": r"([0-9]+.[0-9]+)", "to": r"\1"},
-                    {"from": gh.default_branch, "to": gh.default_branch},
-                ],
-            }
-        },
-        config,
-    )
 
     return config
 
@@ -148,12 +122,10 @@ def get_value(matched: Optional[Match[str]], config: Optional[VersionTransform],
     Return the value
 
     """
-    return matched.expand(config.get("to", r"\1")) if matched is not None and config is not None else value
+    return matched.expand(config["to"]) if matched is not None and config is not None else value
 
 
-def compile_re(
-    config: tag_publish.configuration.VersionTransform, prefix: str = ""
-) -> list[VersionTransform]:
+def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTransform]:
     """
     Compile the from as a regular expression of a dictionary of the config list.
 
@@ -161,21 +133,21 @@ def compile_re(
 
     Arguments:
         config: The transform config
-        prefix: The version prefix
 
     Return the compiled transform config.
 
     """
     result = []
     for conf in config:
-        new_conf = cast(VersionTransform, dict(conf))
+        new_conf = cast(
+            VersionTransform, {"to": conf.get("to", tag_publish.configuration.TRANSFORM_TO_DEFAULT)}
+        )
 
-        from_re = conf.get("from", r"(.*)")
-        if from_re[0] == "^":
-            from_re = from_re[1:]
+        from_re = conf.get("from_re", tag_publish.configuration.TRANSFORM_FROM_DEFAULT)
+        if from_re[0] != "^":
+            from_re = f"^{from_re}"
         if from_re[-1] != "$":
             from_re += "$"
-        from_re = f"^{re.escape(prefix)}{from_re}"
 
         new_conf["from"] = re.compile(from_re)
         result.append(new_conf)
@@ -202,53 +174,6 @@ def match(
         if matched is not None:
             return matched, conf, value
     return None, None, value
-
-
-def does_match(value: str, config: list[VersionTransform]) -> bool:
-    """
-    Check if the version match with the config patterns.
-
-    Arguments:
-    ---------
-    value: That we want to match with
-    config: The result of `compile`
-
-    Returns True it it does match else False
-
-    """
-    matched, _, _ = match(value, config)
-    return matched is not None
-
-
-def check_response(response: requests.Response, raise_for_status: bool = True) -> Any:
-    """
-    Check the response and raise an exception if it's not ok.
-
-    Also print the X-Ratelimit- headers to get information about the rate limiting.
-    """
-    for header in response.headers:
-        if header.lower().startswith("x-ratelimit-"):
-            print(f"{header}: {response.headers[header]}")
-    if raise_for_status:
-        response.raise_for_status()
-
-
-def add_authorization_header(headers: dict[str, str]) -> dict[str, str]:
-    """
-    Add the Authorization header needed to be authenticated on GitHub.
-
-    Arguments:
-        headers: The headers
-
-    Return the headers (to be chained)
-
-    """
-    try:
-        token = os.environ["GITHUB_TOKEN"].strip()
-        headers["Authorization"] = f"Bearer {token}"
-        return headers
-    except FileNotFoundError:
-        return headers
 
 
 @overload

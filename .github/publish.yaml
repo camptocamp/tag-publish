@@ -2,12 +2,12 @@
 
 pypi:
   versions:
-    - version_tag
-    - version_branch
+    - tag
+    - stabilization_branch
+    - default_branch
   packages:
     - {}
 docker:
-  auto_login: true
   images:
     - name: camptocamp/tag-publish
 helm:
