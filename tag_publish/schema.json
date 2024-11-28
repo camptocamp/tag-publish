@@ -198,7 +198,7 @@
           "title": "Node args",
           "description": "The arguments to pass to the publish command",
           "type": "array",
-          "default": ["--provenance"],
+          "default": ["--provenance", "--access=public"],
           "items": {
             "type": "string"
           }

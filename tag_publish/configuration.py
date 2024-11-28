@@ -293,7 +293,7 @@ class HelmPackage(TypedDict, total=False):
     """
 
 
-NODE_ARGS_DEFAULT = ["--provenance"]
+NODE_ARGS_DEFAULT = ["--provenance", "--access=public"]
 """ Default value of the field path 'node args' """
 
 
@@ -352,6 +352,7 @@ class Node(TypedDict, total=False):
 
     default:
       - --provenance
+      - --access=public
     """
 
 
