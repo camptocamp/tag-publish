@@ -10,6 +10,7 @@
       "title": "Docker",
       "description": "The configuration used to publish on Docker",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "latest": {
           "description": "Publish the latest version on tag latest",
@@ -23,6 +24,7 @@
           "items": {
             "title": "Docker image",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "group": {
                 "description": "The image is in the group, should be used with the --group option of tag-publish script",
@@ -59,6 +61,7 @@
           "additionalProperties": {
             "title": "Docker repository",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "host": {
                 "description": "The host of the repository URL",
@@ -95,6 +98,7 @@
       "title": "pypi",
       "description": "Configuration to publish on pypi",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "packages": {
           "description": "The configuration of packages that will be published",
@@ -103,6 +107,7 @@
             "title": "pypi package",
             "description": "The configuration of package that will be published",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "group": {
                 "description": "The image is in the group, should be used with the --group option of tag-publish script",
@@ -141,6 +146,7 @@
       "title": "node",
       "description": "Configuration to publish on node",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "packages": {
           "description": "The configuration of packages that will be published",
@@ -149,6 +155,7 @@
             "title": "node package",
             "description": "The configuration of package that will be published",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "group": {
                 "description": "The image is in the group, should be used with the --group option of tag-publish script",
@@ -186,6 +193,7 @@
           "additionalProperties": {
             "title": "Node repository",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "host": {
                 "description": "The host of the repository URL",
@@ -209,6 +217,7 @@
       "title": "helm",
       "description": "Configuration to publish Helm charts on GitHub release",
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "packages": {
           "description": "The configuration of packages that will be published",
@@ -217,6 +226,7 @@
             "title": "helm package",
             "description": "The configuration of package that will be published",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
               "group": {
                 "description": "The image is in the group, should be used with the --group option of tag-publish script",
@@ -252,6 +262,7 @@
       "items": {
         "title": "Version transform",
         "type": "object",
+        "additionalProperties": false,
         "properties": {
           "from_re": {
             "title": "transform from",
@@ -277,6 +288,7 @@
       "default": {
         "pull_request_to_version_re": [{ "to": "pr-\\1" }]
       },
+      "additionalProperties": false,
       "properties": {
         "branch_to_version": { "$ref": "#/definitions/transform" },
         "tag_to_version": { "$ref": "#/definitions/transform" },
@@ -297,6 +309,7 @@
         "description": "Send a dispatch event to an other repository",
         "default": {},
         "type": "object",
+        "additionalProperties": false,
         "properties": {
           "repository": {
             "title": "Dispatch repository",
