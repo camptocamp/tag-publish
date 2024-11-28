@@ -290,6 +290,12 @@ def helm(folder: str, version: str, owner: str, repo: str, commit_sha: str, toke
             if dependency["repository"].startswith("https://"):
                 subprocess.run(["helm", "repo", "add", str(index), dependency["repository"]], check=True)
 
+        if subprocess.run(["git", "config", "user.email"], capture_output=True).returncode != 0:  # pylint: disable=subprocess-run-check
+            subprocess.run(["git", "config", "--global", "user.email", "tag-publish@gituhb.com"], check=True)
+        if subprocess.run(["git", "config", "user.name"], capture_output=True).returncode != 0:  # pylint: disable=subprocess-run-check
+            subprocess.run(
+                ["git", "config", "--global", "user.name", "tag-publish (GitHub Action)"], check=True
+            )
         subprocess.run(["cr", "package", folder], check=True)
         subprocess.run(
             [
