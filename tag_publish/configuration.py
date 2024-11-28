@@ -7,16 +7,20 @@ from typing import Any, Dict, List, TypedDict
 
 class Configuration(TypedDict, total=False):
     """
-    configuration.
+    Tag publish configuration.
 
-    Tag Publish configuration file
+    Tag Publish configuration file (.github/publish.yaml)
     """
 
-    version: "Version"
+    transformers: "Transformers"
     """
-    Version.
+    Transformers.
 
-    The version configurations
+    The version transform configurations.
+
+    default:
+      pull_request_to_version_re:
+      - to: pr-\1
     """
 
     docker: "Docker"
@@ -61,19 +65,19 @@ DISPATCH_CONFIG_DEFAULT: Dict[str, Any] = {}
 
 
 DISPATCH_DEFAULT: List[Any] = []
-""" Default value of the field path 'configuration dispatch' """
+""" Default value of the field path 'Tag publish configuration dispatch' """
 
 
 DISPATCH_EVENT_TYPE_DEFAULT = "published"
-""" Default value of the field path 'dispatch config event-type' """
+""" Default value of the field path 'dispatch config event_type' """
 
 
 DISPATCH_REPOSITORY_DEFAULT = "camptocamp/argocd-gs-gmf-apps"
 """ Default value of the field path 'dispatch config repository' """
 
 
-DOCKER_AUTO_LOGIN_DEFAULT = False
-""" Default value of the field path 'Docker auto_login' """
+DOCKER_AUTO_LOGIN_DEFAULT = True
+""" Default value of the field path 'Docker github_oidc_login' """
 
 
 DOCKER_IMAGE_GROUP_DEFAULT = "default"
@@ -89,39 +93,52 @@ DOCKER_LATEST_DEFAULT = True
 
 
 DOCKER_REPOSITORY_DEFAULT = {
-    "github": {"server": "ghcr.io", "versions": ["version_tag", "version_branch", "rebuild"]}
+    "github": {
+        "host": "ghcr.io",
+        "versions_type": ["tag", "default_branch", "stabilization_branch", "rebuild"],
+    }
 }
 """ Default value of the field path 'Docker repository' """
 
 
-DOCKER_REPOSITORY_VERSIONS_DEFAULT = ["version_tag", "version_branch", "rebuild", "feature_branch"]
-""" Default value of the field path 'Docker repository versions' """
+DOCKER_REPOSITORY_VERSIONS_DEFAULT = [
+    "tag",
+    "default_branch",
+    "stabilization_branch",
+    "rebuild",
+    "feature_branch",
+    "pull_request",
+]
+""" Default value of the field path 'Docker repository versions_type' """
 
 
-# | dispatch config.
-# |
-# | Send a dispatch event to an other repository
-# |
-# | default:
-# |   {}
-DispatchConfig = TypedDict(
-    "DispatchConfig",
-    {
-        # | Dispatch repository.
-        # |
-        # | The repository name to be triggered
-        # |
-        # | default: camptocamp/argocd-gs-gmf-apps
-        "repository": str,
-        # | Dispatch event type.
-        # |
-        # | The event type to be triggered
-        # |
-        # | default: published
-        "event-type": str,
-    },
-    total=False,
-)
+class DispatchConfig(TypedDict, total=False):
+    """
+    dispatch config.
+
+    Send a dispatch event to an other repository
+
+    default:
+      {}
+    """
+
+    repository: str
+    """
+    Dispatch repository.
+
+    The repository name to be triggered
+
+    default: camptocamp/argocd-gs-gmf-apps
+    """
+
+    event_type: str
+    """
+    Dispatch event type.
+
+    The event type to be triggered
+
+    default: published
+    """
 
 
 class Docker(TypedDict, total=False):
@@ -151,20 +168,21 @@ class Docker(TypedDict, total=False):
 
     default:
       github:
-        server: ghcr.io
-        versions:
-        - version_tag
-        - version_branch
+        host: ghcr.io
+        versions_type:
+        - tag
+        - default_branch
+        - stabilization_branch
         - rebuild
     """
 
-    auto_login: bool
+    github_oidc_login: bool
     """
     Docker auto login.
 
     Auto login to the GitHub Docker registry
 
-    default: False
+    default: True
     """
 
 
@@ -197,20 +215,22 @@ class DockerImage(TypedDict, total=False):
 class DockerRepository(TypedDict, total=False):
     """Docker repository."""
 
-    server: str
-    """ The server URL """
+    host: str
+    """ The host of the repository URL """
 
-    versions: List[str]
+    versions_type: List[str]
     """
     Docker repository versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
 
     default:
-      - version_tag
-      - version_branch
+      - tag
+      - default_branch
+      - stabilization_branch
       - rebuild
       - feature_branch
+      - pull_request
     """
 
 
@@ -222,8 +242,8 @@ HELM_PACKAGE_GROUP_DEFAULT = "default"
 """ Default value of the field path 'helm package group' """
 
 
-HELM_VERSIONS_DEFAULT = ["version_tag"]
-""" Default value of the field path 'helm versions' """
+HELM_VERSIONS_DEFAULT = ["tag"]
+""" Default value of the field path 'helm versions_type' """
 
 
 class Helm(TypedDict, total=False):
@@ -236,14 +256,14 @@ class Helm(TypedDict, total=False):
     packages: List["HelmPackage"]
     """ The configuration of packages that will be published """
 
-    versions: List[str]
+    versions_type: List[str]
     """
     helm versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
 
     default:
-      - version_tag
+      - tag
     """
 
 
@@ -285,12 +305,12 @@ NODE_PACKAGE_GROUP_DEFAULT = "default"
 """ Default value of the field path 'node package group' """
 
 
-NODE_REPOSITORY_DEFAULT = {"github": {"server": "npm.pkg.github.com"}}
+NODE_REPOSITORY_DEFAULT = {"github": {"host": "npm.pkg.github.com"}}
 """ Default value of the field path 'node repository' """
 
 
-NODE_VERSIONS_DEFAULT = ["version_tag"]
-""" Default value of the field path 'node versions' """
+NODE_VERSIONS_DEFAULT = ["tag"]
+""" Default value of the field path 'node versions_type' """
 
 
 class Node(TypedDict, total=False):
@@ -303,14 +323,14 @@ class Node(TypedDict, total=False):
     packages: List["NodePackage"]
     """ The configuration of packages that will be published """
 
-    versions: List[str]
+    versions_type: List[str]
     """
     node versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
 
     default:
-      - version_tag
+      - tag
     """
 
     repository: Dict[str, "NodeRepository"]
@@ -321,7 +341,7 @@ class Node(TypedDict, total=False):
 
     default:
       github:
-        server: npm.pkg.github.com
+        host: npm.pkg.github.com
     """
 
     args: List[str]
@@ -364,8 +384,8 @@ class NodePackage(TypedDict, total=False):
 class NodeRepository(TypedDict, total=False):
     """Node repository."""
 
-    server: str
-    """ The server URL """
+    host: str
+    """ The host of the repository URL """
 
 
 PIP_PACKAGE_GROUP_DEFAULT = "default"
@@ -376,8 +396,8 @@ PYPI_PACKAGE_FOLDER_DEFAULT = "."
 """ Default value of the field path 'pypi package folder' """
 
 
-PYPI_VERSIONS_DEFAULT = ["version_tag"]
-""" Default value of the field path 'pypi versions' """
+PYPI_VERSIONS_DEFAULT = ["tag"]
+""" Default value of the field path 'pypi versions_type' """
 
 
 class Pypi(TypedDict, total=False):
@@ -390,14 +410,14 @@ class Pypi(TypedDict, total=False):
     packages: List["PypiPackage"]
     """ The configuration of packages that will be published """
 
-    versions: List[str]
+    versions_type: List[str]
     """
     pypi versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
 
     default:
-      - version_tag
+      - tag
     """
 
 
@@ -430,43 +450,92 @@ class PypiPackage(TypedDict, total=False):
     """ The command used to do the build """
 
 
-class Version(TypedDict, total=False):
-    """
-    Version.
-
-    The version configurations
-    """
-
-    branch_to_version_re: "VersionTransform"
-    """
-    Version transform.
-
-    A version transformer definition
-    """
-
-    tag_to_version_re: "VersionTransform"
-    """
-    Version transform.
-
-    A version transformer definition
-    """
+TRANSFORMERS_DEFAULT = {"pull_request_to_version_re": [{"to": "pr-\\1"}]}
+""" Default value of the field path 'Tag publish configuration transformers' """
 
 
-VersionTransform = List["_VersionTransformItem"]
+TRANSFORM_DEFAULT: List[Any] = []
+""" Default value of the field path 'transform' """
+
+
+TRANSFORM_FROM_DEFAULT = "(.+)"
+""" Default value of the field path 'Version transform from_re' """
+
+
+TRANSFORM_TO_DEFAULT = "\\1"
+""" Default value of the field path 'Version transform to' """
+
+
+Transform = List["VersionTransform"]
 """
-Version transform.
+transform.
 
 A version transformer definition
+
+default:
+  []
 """
 
 
-_VersionTransformItem = TypedDict(
-    "_VersionTransformItem",
-    {
-        # | The from regular expression
-        "from": str,
-        # | The expand regular expression: https://docs.python.org/3/library/re.html#re.Match.expand
-        "to": str,
-    },
-    total=False,
-)
+class Transformers(TypedDict, total=False):
+    """
+    Transformers.
+
+    The version transform configurations.
+
+    default:
+      pull_request_to_version_re:
+      - to: pr-\1
+    """
+
+    branch_to_version: "Transform"
+    """
+    transform.
+
+    A version transformer definition
+
+    default:
+      []
+    """
+
+    tag_to_version: "Transform"
+    """
+    transform.
+
+    A version transformer definition
+
+    default:
+      []
+    """
+
+    pull_request_to_version: "Transform"
+    """
+    transform.
+
+    A version transformer definition
+
+    default:
+      []
+    """
+
+
+class VersionTransform(TypedDict, total=False):
+    """Version transform."""
+
+    from_re: str
+    """
+    transform from.
+
+    The from regular expression
+
+    default: (.+)
+    """
+
+    to: str
+    """
+    transform to.
+
+    The expand regular expression: https://docs.python.org/3/library/re.html#re.Match.expand
+
+    default: \1
+    """

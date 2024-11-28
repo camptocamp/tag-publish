@@ -22,18 +22,16 @@ def pip(
     version: str,
     version_type: str,
     publish: bool,
-    github: tag_publish.GH,
 ) -> bool:
     """
     Publish to pypi.
 
     Arguments:
         version: The version that will be published
-        version_type: Describe the kind of release we do: rebuild (specified using --type), version_tag,
-                    version_branch, feature_branch, feature_tag (for pull request)
+        version_type: Describe the kind of release we do: rebuild (specified using --type), tag,
+                    default_branch, stabilization_branch, feature_branch, pull_request (merge, number)
         publish: If False only check the package
         package: The package configuration
-        github: The GitHub helper
 
     """
     folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
@@ -45,9 +43,6 @@ def pip(
         env = {}
         env["VERSION"] = version
         env["VERSION_TYPE"] = version_type
-        default_branch = github.repo.default_branch
-        is_master = default_branch == version
-        env["IS_MASTER"] = "TRUE" if is_master else "FALSE"
 
         cwd = os.path.abspath(folder)
 
@@ -58,7 +53,7 @@ def pip(
             cmd = ["python3", "./setup.py", "egg_info", "--no-date"]
             cmd += (
                 ["--tag-build=dev" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")]
-                if version_type in ("version_branch", "rebuild")
+                if version_type in ("default_branch", "stabilization_branch", "rebuild")
                 else []
             )
             cmd.append("bdist_wheel")
@@ -117,8 +112,8 @@ def node(
 
     Arguments:
         version: The version that will be published
-        version_type: Describe the kind of release we do: rebuild (specified using --type), version_tag,
-                    version_branch, feature_branch, feature_tag (for pull request)
+        version_type: Describe the kind of release we do: rebuild (specified using --type), tag,
+                    default_branch, stabilization_branch, feature_branch, pull_request (merge, number)
         repo_config: The repository configuration
         publish: If False only check the package
         package: The package configuration
@@ -132,7 +127,7 @@ def node(
     sys.stderr.flush()
 
     try:
-        if version_type == "version_tag":
+        if version_type == "tag":
             with open(os.path.join(folder, "package.json"), encoding="utf-8") as open_file:
                 package_json = json.loads(open_file.read())
             package_json["version"] = version
@@ -141,7 +136,7 @@ def node(
 
         cwd = os.path.abspath(folder)
 
-        is_github = repo_config["server"] == "npm.pkg.github.com"
+        is_github = repo_config["host"] == "npm.pkg.github.com"
         old_npmrc = None
         npmrc_filename = os.path.expanduser("~/.npmrc")
         if is_github:
@@ -151,7 +146,7 @@ def node(
                     old_npmrc = open_file.read()
             with open(npmrc_filename, "w", encoding="utf-8") as open_file:
                 open_file.write(f"//npm.pkg.github.com/:_authToken={os.environ['GITHUB_TOKEN']}\n")
-                open_file.write(f"registry=https://{repo_config['server']}\n")
+                open_file.write(f"registry=https://{repo_config['host']}\n")
                 open_file.write("always-auth=true\n")
 
         subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"]), *args], cwd=cwd, check=True)
@@ -196,8 +191,8 @@ def docker(
         tag_src: The source tag (usually latest)
         dst_tags: Publish using the provided tags
         images_full: The list of published images (with tag), used to build the dispatch event
-        version_type: Describe the kind of release we do: rebuild (specified using --type), version_tag,
-                    version_branch, feature_branch, feature_tag (for pull request)
+        version_type: Describe the kind of release we do: rebuild (specified using --type), tag,
+                    default_branch, stabilization_branch, feature_branch, pull_request (merge, number)
         published: The list of published artifacts to be filled
 
     """
@@ -210,23 +205,23 @@ def docker(
 
     try:
         new_images_full = []
-        if "server" in config:
+        if "host" in config:
             for tag in dst_tags:
                 subprocess.run(
                     [
                         "docker",
                         "tag",
                         f"{image_config['name']}:{tag_src}",
-                        f"{config['server']}/{image_config['name']}:{tag}",
+                        f"{config['host']}/{image_config['name']}:{tag}",
                     ],
                     check=True,
                 )
-                new_images_full.append(f"{config['server']}/{image_config['name']}:{tag}")
+                new_images_full.append(f"{config['host']}/{image_config['name']}:{tag}")
                 if published is not None:
                     published.append(
                         {
                             "type": "docker",
-                            "repository": config["server"],
+                            "repository": config["host"],
                             "image": image_config["name"],
                             "tag": tag,
                         }

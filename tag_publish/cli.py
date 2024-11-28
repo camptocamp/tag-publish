@@ -39,28 +39,6 @@ def match(tpe: str, base_re: str) -> Optional[Match[str]]:
     return re.match(f"^refs/{tpe}/{base_re}", os.environ["GITHUB_REF"])
 
 
-def to_version(full_config: tag_publish.configuration.Configuration, value: str, kind: str) -> str:
-    """
-    Compute publish version from branch name or tag.
-
-    Arguments:
-        full_config: The full configuration
-        value: The value to be transformed
-        kind: The name of the transformer in the configuration
-
-    """
-    item_re = tag_publish.compile_re(
-        cast(
-            tag_publish.configuration.VersionTransform,
-            full_config["version"].get(kind + "_to_version_re", []),
-        )
-    )
-    value_match = tag_publish.match(value, item_re)
-    if value_match[0] is not None:
-        return tag_publish.get_value(*value_match)
-    return value
-
-
 def main() -> None:
     """
     Run the publish.
@@ -72,15 +50,14 @@ def main() -> None:
         "--docker-versions",
         help="The versions to publish on Docker registry, comma separated, ex: 'x,x.y,x.y.z,latest'.",
     )
-    parser.add_argument("--branch", help="The branch from which to compute the version")
-    parser.add_argument("--tag", help="The tag from which to compute the version")
     parser.add_argument("--dry-run", action="store_true", help="Don't do the publish")
     parser.add_argument("--dry-run-tag", help="Don't do the publish, on a tag")
     parser.add_argument("--dry-run-branch", help="Don't do the publish, on a branch")
+    parser.add_argument("--dry-run-pull", help="Don't do the publish, on a pull request")
     parser.add_argument(
         "--type",
         help="The type of version, if no argument provided auto-determinate, can be: "
-        "rebuild (in case of rebuild), version_tag, version_branch, feature_branch, feature_tag "
+        "rebuild (in case of rebuild), tag, default_branch, stabilization, feature_branch, pull_request "
         "(for pull request)",
     )
     args = parser.parse_args()
@@ -91,95 +68,84 @@ def main() -> None:
     if args.dry_run_branch is not None:
         args.dry_run = True
         os.environ["GITHUB_REF"] = f"refs/heads/{args.dry_run_branch}"
+    if args.dry_run_pull is not None:
+        args.dry_run = True
+        os.environ["GITHUB_REF"] = f"refs/pull/{args.dry_run_pull}"
 
-    github = tag_publish.GH()
-    config = tag_publish.get_config(github)
+    config = tag_publish.get_config()
 
-    # Describe the kind of release we do: rebuild (specified with --type), version_tag, version_branch,
-    # feature_branch, feature_tag (for pull request)
+    # Describe the kind of release we do: rebuild (specified with --type), tag, default_branch,
+    # stabilization_branch, feature_branch, pull_request (merge, number)
     version: str = ""
     ref = os.environ.get("GITHUB_REF", "refs/heads/fake-local")
     local = "GITHUB_REF" not in os.environ
 
-    if len([e for e in [args.version, args.branch, args.tag] if e is not None]) > 1:
-        print("::error::you specified more than one of the arguments --version, --branch or --tag")
+    if args.type is not None and args.version is None:
+        print("::error::you specified the argument --type but not the --version")
         sys.exit(1)
 
     version_type = args.type
-
-    tag_match = tag_publish.match(
-        ref,
-        tag_publish.compile_re(config["version"].get("tag_to_version_re", []), "refs/tags/"),
+    github = tag_publish.GH()
+    security = tag_publish.get_security_md(github, local)
+    transformers = config.get(
+        "transformers",
+        cast(tag_publish.configuration.Transformers, tag_publish.configuration.TRANSFORMERS_DEFAULT),
     )
-    branch_match = tag_publish.match(
-        ref,
-        tag_publish.compile_re(config["version"].get("branch_to_version_re", []), "refs/heads/"),
-    )
-    ref_match = re.match(r"refs/pull/(.*)/merge", ref)
 
     if args.version is not None:
         version = args.version
-    elif args.branch is not None:
-        version = to_version(config, args.branch, "branch")
-    elif args.tag is not None:
-        version = to_version(config, args.tag, "tag")
-    elif tag_match[0] is not None:
-        if version_type is None:
-            version_type = "version_tag"
-        else:
-            print("::warning::you specified the argument --type but not one of --version, --branch or --tag")
-        version = tag_publish.get_value(*tag_match)
-    elif branch_match[0] is not None:
-        if version_type is None:
-            version_type = "version_branch"
-        else:
-            print("::warning::you specified the argument --type but not one of --version, --branch or --tag")
-        version = tag_publish.get_value(*branch_match)
-    elif ref_match is not None:
-        version = tag_publish.get_value(ref_match, {}, ref)
-        if version_type is None:
-            version_type = "feature_branch"
-    elif ref.startswith("refs/heads/"):
-        if version_type is None:
-            version_type = "feature_branch"
-        else:
-            print("::warning::you specified the argument --type but not one of --version, --branch or --tag")
-        # By the way we replace '/' by '_' because it isn't supported by Docker
-        version = "_".join(ref.split("/")[2:])
     elif ref.startswith("refs/tags/"):
-        if version_type is None:
-            version_type = "feature_tag"
+        version_type = "tag"
+        tag_match = tag_publish.match(
+            ref.split("/", 2)[2],
+            tag_publish.compile_re(
+                transformers.get("tag_to_version", cast(tag_publish.configuration.Transform, [{}]))
+            ),
+        )
+        version = tag_publish.get_value(*tag_match)
+    elif ref.startswith("refs/heads/"):
+        branch = ref.split("/", 2)[2]
+        if branch == github.repo.default_branch:
+            version_type = "default_branch"
+        elif branch in security.branches():
+            version_type = "stabilization_branch"
         else:
-            print("::warning::you specified the argument --type but not one of --version, --branch or --tag")
-        # By the way we replace '/' by '_' because it isn't supported by Docker
+            version_type = "feature_branch"
+
+        if version_type in ("default_branch", "stabilization_branch"):
+            branch_match = tag_publish.match(
+                ref.split("/", 2)[2],
+                tag_publish.compile_re(
+                    transformers.get("branch_to_version", cast(tag_publish.configuration.Transform, [{}]))
+                ),
+            )
+            version = tag_publish.get_value(*branch_match)
+        else:
+            version = branch.replace("/", "_")
+    elif ref.startswith("refs/pull/"):
+        version_type = "pull_request"
+        pull_match = tag_publish.match(
+            ref.split("/", 2)[2],
+            tag_publish.compile_re(
+                transformers.get("pull_request_to_version", cast(tag_publish.configuration.Transform, [{}]))
+            ),
+        )
+        version = tag_publish.get_value(*pull_match)
         version = "_".join(ref.split("/")[2:])
     else:
         print(
-            f"WARNING: {ref} is not supported, only ref starting with 'refs/heads/' or 'refs/tags/' "
-            "are supported, ignoring"
+            f"WARNING: {ref} is not supported, only ref starting with 'refs/heads/', 'refs/tags/' "
+            "or 'refs/pull/' are supported, ignoring"
         )
         sys.exit(0)
 
-    if version_type is None:
-        print(
-            "::error::you specified one of the arguments --version, --branch or --tag but not the --type, "
-            f"GitHub ref is: {ref}"
-        )
-        sys.exit(1)
-
-    if version_type is not None:
-        if args.dry_run:
-            print(f"Create release type {version_type}: {version} (dry run)")
-        else:
-            print(f"Create release type {version_type}: {version}")
-
-    github = tag_publish.GH()
+    print(f"Create release type {version_type}: {version}" + (" (dry run)" if args.dry_run else ""))
 
     success = True
     published_payload: list[tag_publish.PublishedPayload] = []
 
     success &= _handle_pypi_publish(
-        args.group, args.dry_run, config, version, version_type, github, published_payload
+        args.group, args.dry_run, config, version, version_type, published_payload
     )
     success &= _handle_node_publish(
         args.group, args.dry_run, config, version, version_type, published_payload
@@ -191,9 +157,8 @@ def main() -> None:
         config,
         version,
         version_type,
-        github,
         published_payload,
-        local,
+        security,
     )
     success &= _handle_helm_publish(
         args.group, args.dry_run, config, version, version_type, github, published_payload
@@ -210,7 +175,6 @@ def _handle_pypi_publish(
     config: tag_publish.configuration.Configuration,
     version: str,
     version_type: str,
-    github: tag_publish.GH,
     published_payload: list[tag_publish.PublishedPayload],
 ) -> bool:
     success = True
@@ -222,13 +186,13 @@ def _handle_pypi_publish(
         for package in pypi_config.get("packages", []):
             if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in pypi_config.get(
-                    "versions", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
+                    "versions_type", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
                 )
                 folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
                 if dry_run:
                     print(f"{'Publishing' if publish else 'Checking'} '{folder}' to pypi, skipping (dry run)")
                 else:
-                    success &= tag_publish.publish.pip(package, version, version_type, publish, github)
+                    success &= tag_publish.publish.pip(package, version, version_type, publish)
                     if publish:
                         published_payload.append({"type": "pypi", "folder": folder})
     return success
@@ -245,7 +209,7 @@ def _handle_node_publish(
     success = True
     node_config = config.get("node", {})
     if node_config:
-        if version_type == "version_branch":
+        if version_type in ("default_branch", "stable_branch"):
             last_tag = (
                 subprocess.run(
                     ["git", "describe", "--abbrev=0", "--tags"], check=True, stdout=subprocess.PIPE
@@ -264,7 +228,7 @@ def _handle_node_publish(
         for package in node_config.get("packages", []):
             if package.get("group", tag_publish.configuration.NODE_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in node_config.get(
-                    "versions", tag_publish.configuration.NODE_VERSIONS_DEFAULT
+                    "versions_type", tag_publish.configuration.NODE_VERSIONS_DEFAULT
                 )
                 folder = package.get("folder", tag_publish.configuration.NODE_PACKAGE_FOLDER_DEFAULT)
                 for repo_name, repo_config in node_config.get(
@@ -300,16 +264,15 @@ def _handle_docker_publish(
     config: tag_publish.configuration.Configuration,
     version: str,
     version_type: str,
-    github: tag_publish.GH,
     published_payload: list[tag_publish.PublishedPayload],
-    local: bool,
+    security: security_md.Security,
 ) -> bool:
     success = True
     docker_config = config.get("docker", {})
     if docker_config:
         sys.stdout.flush()
         sys.stderr.flush()
-        if docker_config.get("auto_login", tag_publish.configuration.DOCKER_AUTO_LOGIN_DEFAULT):
+        if docker_config.get("github_oidc_login", tag_publish.configuration.DOCKER_AUTO_LOGIN_DEFAULT):
             subprocess.run(
                 [
                     "docker",
@@ -320,16 +283,6 @@ def _handle_docker_publish(
                 ],
                 check=True,
             )
-        security_text = ""
-        if local:
-            if os.path.exists("SECURITY.md"):
-                with open("SECURITY.md", encoding="utf-8") as security_file:
-                    security_text = security_file.read()
-                    security = security_md.Security(security_text)
-            else:
-                security = security_md.Security("")
-        else:
-            security = tag_publish.get_security_md(github)
 
         version_index = security.version_index
         alternate_tag_index = security.alternate_tag_index
@@ -376,7 +329,7 @@ def _handle_docker_publish(
                     ).items():
                         for docker_version in versions:
                             if version_type in conf.get(
-                                "versions",
+                                "versions_type",
                                 tag_publish.configuration.DOCKER_REPOSITORY_VERSIONS_DEFAULT,
                             ):
                                 tags = [
@@ -464,7 +417,7 @@ def _handle_helm_publish(
             .stdout.strip()
             .decode()
         )
-        if version_type == "version_branch":
+        if version_type in ("default_branch", "stabilization_branch"):
             last_tag = (
                 subprocess.run(
                     ["git", "describe", "--abbrev=0", "--tags"], check=True, stdout=subprocess.PIPE
@@ -482,7 +435,9 @@ def _handle_helm_publish(
 
         for package in helm_config["packages"]:
             if package.get("group", tag_publish.configuration.HELM_PACKAGE_GROUP_DEFAULT) == group:
-                versions_type = helm_config.get("versions", tag_publish.configuration.HELM_VERSIONS_DEFAULT)
+                versions_type = helm_config.get(
+                    "versions_type", tag_publish.configuration.HELM_VERSIONS_DEFAULT
+                )
                 publish = version_type in versions_type
                 folder = package.get("folder", tag_publish.configuration.HELM_PACKAGE_FOLDER_DEFAULT)
                 if publish:
@@ -509,7 +464,7 @@ def _trigger_dispatch_events(
 ) -> None:
     for dispatch_config in config.get("dispatch", []):
         repository = dispatch_config.get("repository")
-        event_type = dispatch_config.get("event-type", tag_publish.configuration.DISPATCH_EVENT_TYPE_DEFAULT)
+        event_type = dispatch_config.get("event_type", tag_publish.configuration.DISPATCH_EVENT_TYPE_DEFAULT)
 
         published = {
             "version": version,

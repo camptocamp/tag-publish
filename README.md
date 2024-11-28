@@ -5,7 +5,7 @@
 The main goals of Tag Publish offer the commands to publish the project,
 Using a tag, a stabilization branch, a feature branch or a pull request.
 
-When possible it can do a secret-less publishing, if it's not possible the login should be done before the publishing.
+When possible it can do a secret-less publishing (privileged in defaults), if it's not possible the login should be done before the publishing.
 
 See the [documentation](https://github.com/camptocamp/c2cciutils/wiki/Publishing).
 
@@ -41,6 +41,10 @@ Do the publishing:
 
 ## New version
 
+To create a new version you should create a Git tag with the version number.
+
+## New stabilization branch
+
 To create a new minor version you just should run `tag-publish-new --version=<version>`.
 
 This will create the stabilization branch and will create a new pull request to update
@@ -53,6 +57,17 @@ You are welcome to run `tag-publish-new --help` to see what's it's done.
 Note that it didn't create a tag, you should do it manually.
 
 To create a patch version you should just create tag.
+
+## Kind of publishing
+
+This tool can publish on different kind of versions:
+
+- `tag`: Related to a Git tag.
+- `default_branch`: Related to the default branch.
+- `stabilization_branch`: Related to a stabilization branch (including the default branch).
+- `feature_branch`: Related to a feature branch or a pull request.
+
+We can also publish on different kind of versions like `rebuild` by using the `--type` argument.
 
 ## SECURITY.md
 
@@ -94,7 +109,7 @@ https://docs.github.com/en/actions/security-for-github-actions/security-hardenin
 
 By default the package will be published only on tag, if you want to publish on stabilization branch you should add
 a `versions` key with the list of versions you want to publish, that can be:
-`rebuild` (specified with --type), `version_tag`, `version_branch`, `feature_branch`, `feature_tag` (for pull request)
+`rebuild` (specified with --type), `tag`, `default_branch`, `stabilization_branch`, `feature_branch`, `pull_request` (for pull request merge: number)
 
 It we have a `setup.py` file, we will be in legacy mode:
 When publishing, the version computed from arguments or `GITHUB_REF` is put in environment variable `VERSION`, thus you should use it in `setup.py`, example:
@@ -113,8 +128,10 @@ enable = true
 vcs = "git"
 pattern = "^(?P<base>\\d+(\\.\\d+)*)"
 format-jinja = """
-{%- if env.get("VERSION_TYPE") == "version_branch" -%}
-{{serialize_pep440(bump_version(base, 1 if env.get("IS_MASTER") == "TRUE" else 2), dev=distance)}}
+{%- if env.get("VERSION_TYPE") == "default_branch" -%}
+{{serialize_pep440(bump_version(base, 1), dev=distance)}}
+{%- elif env.get("VERSION_TYPE") == "stabilization_branch" -%}
+{{serialize_pep440(bump_version(base, 2), dev=distance)}}
 {%- elif distance == 0 -%}
 {{serialize_pep440(base)}}
 {%- else -%}
@@ -124,7 +141,7 @@ format-jinja = """
 
 ```
 
-Note that we can access to the environment variables `VERSION`,`VERSION_TYPE` and `IS_MASTER`.
+Note that we can access to the environment variables `VERSION`,`VERSION_TYPE`.
 
 Then by default:
 
@@ -185,13 +202,13 @@ docker:
 If you want to use the GitHub token to be logged in on ghcr you should set `auto_login` to `True`, the
 requires the permissions are `packages: write`.
 
-With that the image initially named `camptocamp/tag-publish:latest` will be published on GitHub CHCR and on Docker hub.
+With that the image initially named `camptocamp/tag-publish:latest` will be published on GitHub GHCR and on Docker hub.
 
 The full config is like this:
 
 ```yaml
 docker:
-  auto_login: False
+  github_oidc_login: True
   latest: True
   images:
     - # The base name of the image we want to publish
@@ -201,7 +218,7 @@ docker:
       # The fqdn name of the server if not Docker hub
       server:
       # List of kinds of versions you want to publish, that can be: rebuild (specified using --type),
-      # version_tag, version_branch, feature_branch, feature_tag (for pull request)
+      # tag, stabilization_branch, feature_branch, pull_request (for pull request merge: number)
       version:
       # List of tags we want to publish interpreted with `format(version=version)`
       # e.g. if you use `{version}-lite` when you publish the version `1.2.3` the source tag
@@ -279,7 +296,7 @@ This will create a repository dispatch of type `published` on own repository wit
 ```json
 {
   "version": "1.2.3",
-  "version_type": "version_tag",
+  "version_type": "tag",
   "repository": "camptocamp/tag-publish",
   "items": [
     {

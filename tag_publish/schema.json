@@ -2,8 +2,8 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://raw.githubusercontent.com/camptocamp/tilecloud-chain/master/tilecloud_chain/schema.json",
   "type": "object",
-  "title": "configuration",
-  "description": "Tag Publish configuration file",
+  "title": "Tag publish configuration",
+  "description": "Tag Publish configuration file (.github/publish.yaml)",
   "additionalProperties": false,
   "definitions": {
     "docker": {
@@ -51,8 +51,8 @@
           "description": "The repository where we should publish the images",
           "default": {
             "github": {
-              "server": "ghcr.io",
-              "versions": ["version_tag", "version_branch", "rebuild"]
+              "host": "ghcr.io",
+              "versions_type": ["tag", "default_branch", "stabilization_branch", "rebuild"]
             }
           },
           "type": "object",
@@ -60,15 +60,22 @@
             "title": "Docker repository",
             "type": "object",
             "properties": {
-              "server": {
-                "description": "The server URL",
+              "host": {
+                "description": "The host of the repository URL",
                 "type": "string"
               },
-              "versions": {
+              "versions_type": {
                 "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
                 "title": "Docker repository versions",
                 "type": "array",
-                "default": ["version_tag", "version_branch", "rebuild", "feature_branch"],
+                "default": [
+                  "tag",
+                  "default_branch",
+                  "stabilization_branch",
+                  "rebuild",
+                  "feature_branch",
+                  "pull_request"
+                ],
                 "items": {
                   "type": "string"
                 }
@@ -76,11 +83,11 @@
             }
           }
         },
-        "auto_login": {
+        "github_oidc_login": {
           "title": "Docker auto login",
           "description": "Auto login to the GitHub Docker registry",
           "type": "boolean",
-          "default": false
+          "default": true
         }
       }
     },
@@ -119,11 +126,11 @@
             }
           }
         },
-        "versions": {
+        "versions_type": {
           "title": "pypi versions",
           "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
           "type": "array",
-          "default": ["version_tag"],
+          "default": ["tag"],
           "items": {
             "type": "string"
           }
@@ -158,11 +165,11 @@
             }
           }
         },
-        "versions": {
+        "versions_type": {
           "title": "node versions",
           "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
           "type": "array",
-          "default": ["version_tag"],
+          "default": ["tag"],
           "items": {
             "type": "string"
           }
@@ -172,7 +179,7 @@
           "description": "The packages repository where we should publish the packages",
           "default": {
             "github": {
-              "server": "npm.pkg.github.com"
+              "host": "npm.pkg.github.com"
             }
           },
           "type": "object",
@@ -180,8 +187,8 @@
             "title": "Node repository",
             "type": "object",
             "properties": {
-              "server": {
-                "description": "The server URL",
+              "host": {
+                "description": "The host of the repository URL",
                 "type": "string"
               }
             }
@@ -226,44 +233,54 @@
             }
           }
         },
-        "versions": {
+        "versions_type": {
           "title": "helm versions",
           "description": "The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script",
           "type": "array",
-          "default": ["version_tag"],
+          "default": ["tag"],
           "items": {
             "type": "string"
           }
         }
       }
     },
-    "version_transform": {
-      "title": "Version transform",
+    "transform": {
+      "title": "transform",
       "description": "A version transformer definition",
       "type": "array",
+      "default": [],
       "items": {
+        "title": "Version transform",
         "type": "object",
         "properties": {
-          "from": {
+          "from_re": {
+            "title": "transform from",
             "description": "The from regular expression",
-            "type": "string"
+            "type": "string",
+            "default": "(.+)"
           },
           "to": {
+            "title": "transform to",
             "description": "The expand regular expression: https://docs.python.org/3/library/re.html#re.Match.expand",
-            "type": "string"
+            "type": "string",
+            "default": "\\1"
           }
         }
       }
     }
   },
   "properties": {
-    "version": {
-      "title": "Version",
-      "description": "The version configurations",
+    "transformers": {
+      "title": "Transformers",
+      "description": "The version transform configurations.",
       "type": "object",
+      "default": {
+        "pull_request_to_version_re": [{ "to": "pr-\\1" }]
+      },
       "properties": {
-        "branch_to_version_re": { "$ref": "#/definitions/version_transform" },
-        "tag_to_version_re": { "$ref": "#/definitions/version_transform" }
+        "branch_to_version": { "$ref": "#/definitions/transform" },
+        "tag_to_version": { "$ref": "#/definitions/transform" },
+        "pull_request_to_version": { "$ref": "#/definitions/transform" }
       }
     },
     "docker": { "$ref": "#/definitions/docker" },
@@ -287,7 +304,7 @@
             "default": "camptocamp/argocd-gs-gmf-apps",
             "type": "string"
           },
-          "event-type": {
+          "event_type": {
             "title": "Dispatch event type",
             "description": "The event type to be triggered",
             "default": "published",
