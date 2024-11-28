@@ -52,7 +52,7 @@ _Tag Publish configuration file (.github/publish.yaml)_
   - **`repository`** _(object)_: The packages repository where we should publish the packages. Can contain additional properties. Default: `{"github": {"host": "npm.pkg.github.com"}}`.
     - **Additional properties** _(object)_
       - **`host`** _(string)_: The host of the repository URL.
-  - **`args`** _(array)_: The arguments to pass to the publish command. Default: `["--provenance"]`.
+  - **`args`** _(array)_: The arguments to pass to the publish command. Default: `["--provenance", "--access=public"]`.
     - **Items** _(string)_
 - <a id="definitions/helm"></a>**`helm`** _(object)_: Configuration to publish Helm charts on GitHub release.
   - **`packages`** _(array)_: The configuration of packages that will be published.
