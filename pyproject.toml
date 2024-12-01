@@ -70,7 +70,7 @@ applications-download = "0.7.1"
 jsonschema-validator-new = "0.1.0"
 PyGithub = "2.5.0"
 debian-inspector = "31.1.0"
-multi-repo-automation = "1.4.1"
+multi-repo-automation = "1.4.2"
 
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.12.1", extras = ["with-bandit", "with-mypy", "with-pyroma"] }
