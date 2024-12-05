@@ -4,7 +4,7 @@ _Tag Publish configuration file (.github/publish.yaml)_
 
 ## Properties
 
-- **`transformers`** _(object)_: The version transform configurations. Cannot contain additional properties. Default: `{"pull_request_to_version_re": [{"to": "pr-\\1"}]}`.
+- **`transformers`** _(object)_: The version transform configurations. Cannot contain additional properties. Default: `{"pull_request_to_version": [{"to": "pr-\\1"}]}`.
   - **`branch_to_version`**: Refer to _[#/definitions/transform](#definitions/transform)_.
   - **`tag_to_version`**: Refer to _[#/definitions/transform](#definitions/transform)_.
   - **`pull_request_to_version`**: Refer to _[#/definitions/transform](#definitions/transform)_.
