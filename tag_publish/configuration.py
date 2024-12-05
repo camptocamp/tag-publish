@@ -19,7 +19,7 @@ class Configuration(TypedDict, total=False):
     The version transform configurations.
 
     default:
-      pull_request_to_version_re:
+      pull_request_to_version:
       - to: pr-\1
     """
 
@@ -451,7 +451,7 @@ class PypiPackage(TypedDict, total=False):
     """ The command used to do the build """
 
 
-TRANSFORMERS_DEFAULT = {"pull_request_to_version_re": [{"to": "pr-\\1"}]}
+TRANSFORMERS_DEFAULT = {"pull_request_to_version": [{"to": "pr-\\1"}]}
 """ Default value of the field path 'Tag publish configuration transformers' """
 
 
@@ -485,7 +485,7 @@ class Transformers(TypedDict, total=False):
     The version transform configurations.
 
     default:
-      pull_request_to_version_re:
+      pull_request_to_version:
       - to: pr-\1
     """
 

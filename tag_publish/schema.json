@@ -286,7 +286,7 @@
       "description": "The version transform configurations.",
       "type": "object",
       "default": {
-        "pull_request_to_version_re": [{ "to": "pr-\\1" }]
+        "pull_request_to_version": [{ "to": "pr-\\1" }]
       },
       "additionalProperties": false,
       "properties": {
