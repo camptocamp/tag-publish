@@ -2,7 +2,7 @@
 Automatically generated file from a JSON schema.
 """
 
-from typing import Any, Dict, List, TypedDict
+from typing import Any, TypedDict
 
 
 class Configuration(TypedDict, total=False):
@@ -51,7 +51,7 @@ class Configuration(TypedDict, total=False):
     Configuration to publish Helm charts on GitHub release
     """
 
-    dispatch: List["DispatchConfig"]
+    dispatch: list["DispatchConfig"]
     """
     Dispatch.
 
@@ -60,11 +60,11 @@ class Configuration(TypedDict, total=False):
     """
 
 
-DISPATCH_CONFIG_DEFAULT: Dict[str, Any] = {}
+DISPATCH_CONFIG_DEFAULT: dict[str, Any] = {}
 """ Default value of the field path 'Dispatch item' """
 
 
-DISPATCH_DEFAULT: List[Any] = []
+DISPATCH_DEFAULT: list[Any] = []
 """ Default value of the field path 'Tag publish configuration dispatch' """
 
 
@@ -157,10 +157,10 @@ class Docker(TypedDict, total=False):
     default: True
     """
 
-    images: List["DockerImage"]
+    images: list["DockerImage"]
     """ List of images to be published """
 
-    repository: Dict[str, "DockerRepository"]
+    repository: dict[str, "DockerRepository"]
     """
     Docker repository.
 
@@ -201,7 +201,7 @@ class DockerImage(TypedDict, total=False):
     name: str
     """ The image name """
 
-    tags: List[str]
+    tags: list[str]
     """
     docker image tags.
 
@@ -218,7 +218,7 @@ class DockerRepository(TypedDict, total=False):
     host: str
     """ The host of the repository URL """
 
-    versions_type: List[str]
+    versions_type: list[str]
     """
     Docker repository versions.
 
@@ -253,10 +253,10 @@ class Helm(TypedDict, total=False):
     Configuration to publish Helm charts on GitHub release
     """
 
-    packages: List["HelmPackage"]
+    packages: list["HelmPackage"]
     """ The configuration of packages that will be published """
 
-    versions_type: List[str]
+    versions_type: list[str]
     """
     helm versions.
 
@@ -320,10 +320,10 @@ class Node(TypedDict, total=False):
     Configuration to publish on node
     """
 
-    packages: List["NodePackage"]
+    packages: list["NodePackage"]
     """ The configuration of packages that will be published """
 
-    versions_type: List[str]
+    versions_type: list[str]
     """
     node versions.
 
@@ -333,7 +333,7 @@ class Node(TypedDict, total=False):
       - tag
     """
 
-    repository: Dict[str, "NodeRepository"]
+    repository: dict[str, "NodeRepository"]
     """
     Node repository.
 
@@ -344,7 +344,7 @@ class Node(TypedDict, total=False):
         host: npm.pkg.github.com
     """
 
-    args: List[str]
+    args: list[str]
     """
     Node args.
 
@@ -408,10 +408,10 @@ class Pypi(TypedDict, total=False):
     Configuration to publish on pypi
     """
 
-    packages: List["PypiPackage"]
+    packages: list["PypiPackage"]
     """ The configuration of packages that will be published """
 
-    versions_type: List[str]
+    versions_type: list[str]
     """
     pypi versions.
 
@@ -447,7 +447,7 @@ class PypiPackage(TypedDict, total=False):
     default: .
     """
 
-    build_command: List[str]
+    build_command: list[str]
     """ The command used to do the build """
 
 
@@ -455,7 +455,7 @@ TRANSFORMERS_DEFAULT = {"pull_request_to_version": [{"to": "pr-\\1"}]}
 """ Default value of the field path 'Tag publish configuration transformers' """
 
 
-TRANSFORM_DEFAULT: List[Any] = []
+TRANSFORM_DEFAULT: list[Any] = []
 """ Default value of the field path 'transform' """
 
 
@@ -467,7 +467,7 @@ TRANSFORM_TO_DEFAULT = "\\1"
 """ Default value of the field path 'Version transform to' """
 
 
-Transform = List["VersionTransform"]
+Transform = list["VersionTransform"]
 """
 transform.
 
