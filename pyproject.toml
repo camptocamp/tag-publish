@@ -64,18 +64,18 @@ python = ">=3.9,<4.0"
 requests = "2.32.3"
 twine = "5.1.1"
 PyYAML = "6.0.2"
-id = "1.4.0"
+id = "1.5.0"
 security-md = "0.2.3"
-applications-download = "0.7.1"
-jsonschema-validator-new = "0.1.0"
+applications-download = "0.8.0"
+jsonschema-validator-new = "0.3.2"
 PyGithub = "2.5.0"
 debian-inspector = "31.1.0"
-multi-repo-automation = "1.4.2"
+multi-repo-automation = "1.5.0"
 
 [tool.poetry.group.dev.dependencies]
-prospector = { version = "1.12.1", extras = ["with-bandit", "with-mypy", "with-pyroma"] }
-prospector-profile-duplicated = "1.6.0"
-prospector-profile-utils = "1.9.1"
+prospector = { version = "1.13.3", extras = ["with-bandit", "with-mypy", "with-pyroma"] }
+prospector-profile-duplicated = "1.10.0"
+prospector-profile-utils = "1.14.1"
 types-requests = "2.32.0.20241016"
 types-pyyaml = "6.0.12.20241230"
 
