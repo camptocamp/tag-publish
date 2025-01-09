@@ -1,7 +1,11 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/sbrunner/jsonschema-gentypes/2.9.3/jsonschema_gentypes/schema.json
+
 headers: |
   """
   Automatically generated file from a JSON schema.
   """
+
+python_version: '3.9'
 
 pre_commit:
   enabled: true
