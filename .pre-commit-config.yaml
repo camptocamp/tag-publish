@@ -33,7 +33,8 @@ repos:
       - id: jsonschema-validator
         files: |-
           (?x)^(
-            ci/config\.yaml
+            \.github/ghci\.yaml
+            |\.github/publish\.yaml
           )$
   - repo: https://github.com/sbrunner/jsonschema2md2
     rev: 1.3.0
@@ -101,12 +102,13 @@ repos:
     hooks:
       - id: prospector
         args:
-          - --tool=pydocstyle
+          - --tool=ruff
           - --die-on-tool-error
           - --output-format=pylint
         additional_dependencies:
-          - prospector-profile-duplicated==1.8.1 # pypi
-          - prospector-profile-utils==1.12.2 # pypi
+          - prospector-profile-duplicated==1.10.4 # pypi
+          - prospector-profile-utils==1.15.1 # pypi
+          - ruff==0.7.3 # pypi
   - repo: https://github.com/mheap/json-schema-spell-checker
     rev: main
     hooks:
@@ -121,3 +123,7 @@ repos:
           - --ignore-numbers
           - --ignore-acronyms
           - --en-us
+  - repo: https://github.com/sbrunner/python-versions-hook
+    rev: 0.8.0
+    hooks:
+      - id: python-versions

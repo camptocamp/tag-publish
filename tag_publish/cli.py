@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-"""
-The publish script.
-"""
+"""The publish script."""
 
 import argparse
 import os
@@ -40,9 +38,7 @@ def match(tpe: str, base_re: str) -> Optional[Match[str]]:
 
 
 def main() -> None:
-    """
-    Run the publish.
-    """
+    """Run the publish."""
     parser = argparse.ArgumentParser(description="Publish the project.")
     parser.add_argument("--group", default="default", help="The publishing group")
     parser.add_argument("--version", help="The version to publish to")
@@ -131,7 +127,6 @@ def main() -> None:
             ),
         )
         version = tag_publish.get_value(*pull_match)
-        version = "_".join(ref.split("/")[2:])
     else:
         print(
             f"WARNING: {ref} is not supported, only ref starting with 'refs/heads/', 'refs/tags/' "
@@ -368,6 +363,8 @@ def _handle_docker_publish(
                 with open(".github/dpkg-versions.yaml", encoding="utf-8") as dpkg_versions_file:
                     current_versions_in_images = yaml.load(dpkg_versions_file, Loader=yaml.SafeLoader)
             for image in images_src:
+                if image in current_versions_in_images:
+                    current_versions_in_images[image] = dict(current_versions_in_images[image])
                 _, versions_image = tag_publish.lib.docker.get_dpkg_packages_versions(image)
                 for dpkg_package, package_version in versions_image.items():
                     if dpkg_package not in current_versions_in_images.get(image, {}):

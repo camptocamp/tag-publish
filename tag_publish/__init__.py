@@ -1,6 +1,4 @@
-"""
-Tag Publish main module.
-"""
+"""Tag Publish main module."""
 
 import json
 import os.path
@@ -89,9 +87,7 @@ def get_security_md(gh: GH, local: bool) -> security_md.Security:
 
 
 def get_config() -> tag_publish.configuration.Configuration:
-    """
-    Get the configuration, with project and auto detections.
-    """
+    """Get the configuration, with project and auto detections."""
     config: tag_publish.configuration.Configuration = {}
     if os.path.exists(".github/publish.yaml"):
         schema_data = pkgutil.get_data("tag_publish", "schema.json")
@@ -185,9 +181,7 @@ def download_application(application_name: str) -> None: ...
 
 
 def download_application(application_name: str, binary_filename: Optional[str] = None) -> Optional[str]:
-    """
-    Download the application if necessary, with the included version.
-    """
+    """Download the application if necessary, with the included version."""
     binary_full_filename = (
         os.path.expanduser(os.path.join("~", ".local", "bin", binary_filename)) if binary_filename else None
     )
@@ -205,9 +199,7 @@ def download_application(application_name: str, binary_filename: Optional[str] =
 
 
 class PublishedPayload(TypedDict, total=False):
-    """
-    The payload to send to the dispatch event.
-    """
+    """The payload to send to the dispatch event."""
 
     type: str
     image: str

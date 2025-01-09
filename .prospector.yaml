@@ -2,17 +2,19 @@ inherits:
   - utils:base
   - utils:no-design-checks
   - utils:fix
+  - utils:unsafe
   - duplicated
-
-doc-warnings: true
 
 ignore-paths:
   - tag_publish/configuration.py
 
-pylint:
-  disable:
-    - missing-module-docstring
-
-bandit:
+mypy:
   options:
-    config: .bandit.yaml
+    python-version: '3.9'
+
+ruff:
+  options:
+    target-version: py39
+  disable:
+    - S607 # Starting a process with a partial executable path [See: https://docs.astral.sh/ruff/rules/start-process-with-partial-path]
+    - S603 # `subprocess` call: check for execution of untrusted input [See: https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true]
