@@ -1,6 +1,4 @@
-"""
-The publishing functions.
-"""
+"""The publishing functions."""
 
 import datetime
 import glob
