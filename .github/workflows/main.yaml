@@ -27,6 +27,9 @@ jobs:
     timeout-minutes: 20
     if: "!startsWith(github.event.head_commit.message, '[skip ci] ')"
 
+    outputs:
+      success: ${{ steps.success.outputs.success }}
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -52,11 +55,17 @@ jobs:
           retention-days: 1
         if: failure()
 
+      - run: echo "::set-output name=success::true"
+        id: success
+
   main:
     name: Continuous integration
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    needs: pre-commit
+    if: "!startsWith(github.event.head_commit.message, '[skip ci] ')"
+
+    outputs:
+      success: ${{ steps.success.outputs.success }}
 
     steps:
       - uses: actions/checkout@v4
@@ -97,3 +106,18 @@ jobs:
           path: /tmp/dpkg-versions.patch
           retention-days: 1
         if: failure()
+
+      - run: echo "::set-output name=success::true"
+        id: success
+
+  success:
+    name: Success
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    needs: [main, pre-commit]
+    if: always()
+
+    steps:
+      - run: '[[ "${{ needs.pre-commit.outputs.success }}" == "true" ]]'
+      - run: '[[ "${{ needs.main.outputs.success }}" == "true" ]]'
+      - run: echo "Success"
