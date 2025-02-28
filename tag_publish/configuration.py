@@ -1,4 +1,6 @@
-"""Automatically generated file from a JSON schema."""
+"""
+Automatically generated file from a JSON schema.
+"""
 
 from typing import Any, TypedDict
 
@@ -477,7 +479,7 @@ default:
 
 
 class Transformers(TypedDict, total=False):
-    r"""
+    """
     Transformers.
 
     The version transform configurations.
