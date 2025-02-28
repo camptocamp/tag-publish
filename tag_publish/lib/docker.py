@@ -1,7 +1,7 @@
 """Some utility functions for Docker images."""
 
-import os
 import subprocess  # nosec: B404
+from pathlib import Path
 from typing import Optional, cast
 
 import yaml
@@ -82,7 +82,7 @@ def get_dpkg_packages_versions(
                     if package in package_version and version != package_version[package]:
                         print(
                             f"The package {package} has different version "
-                            f"({package_version[package]} != {version})"
+                            f"({package_version[package]} != {version})",
                         )
                     if package not in ("base-files",):
                         package_version[package] = version
@@ -96,8 +96,9 @@ def get_dpkg_packages_versions(
 
 def get_versions_config() -> tuple[dict[str, dict[str, str]], bool]:
     """Get the versions from the config file."""
-    if os.path.exists(".github/dpkg-versions.yaml"):
-        with open(".github/dpkg-versions.yaml", encoding="utf-8") as versions_file:
+    dpkg_versions_path = Path(".github/dpkg-versions.yaml")
+    if dpkg_versions_path.exists():
+        with dpkg_versions_path.open(encoding="utf-8") as versions_file:
             return (
                 cast(dict[str, dict[str, str]], yaml.load(versions_file.read(), Loader=yaml.SafeLoader)),
                 True,
@@ -129,7 +130,7 @@ def check_versions(
         elif Version.from_string(versions_config[package]) > version:
             print(
                 f"Package {package} is older than the config file for the image {image}: "
-                f"{versions_config[package]} > {version}."
+                f"{versions_config[package]} > {version}.",
             )
             success = False
 

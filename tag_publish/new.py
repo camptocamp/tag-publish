@@ -2,9 +2,9 @@
 
 import argparse
 import json
-import os
 import re
 import subprocess  # nosec
+from pathlib import Path
 
 import multi_repo_automation as mra
 import ruamel.yaml
@@ -114,7 +114,7 @@ regarding the SECURITY.md available on GitHub.
 
     # Checkout a new branch named new-version
     if arguments.force:
-        subprocess.run(["git", "branch", "-D", branch_name])  # pylint: disable=subprocess-run-check
+        subprocess.run(["git", "branch", "-D", branch_name], check=False)  # pylint: disable=subprocess-run-check
     subprocess.run(["git", "checkout", "-b", branch_name], check=True)
 
     # # # Do the changes for the new version # # #
@@ -122,14 +122,20 @@ regarding the SECURITY.md available on GitHub.
     remotes = [
         r
         for r in subprocess.run(
-            ["git", "remote"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+            ["git", "remote"],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+            check=True,
         ).stdout.split()
         if r != ""
     ]
     remote_branches = [
         b.strip()[len("remotes/") :]
         for b in subprocess.run(
-            ["git", "branch", "--all"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+            ["git", "branch", "--all"],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+            check=True,
         ).stdout.split()
         if b != "" and b.strip().startswith("remotes/")
     ]
@@ -140,8 +146,8 @@ regarding the SECURITY.md available on GitHub.
     else:
         remote_branches = ["/".join(b.split("/")[1:]) for b in remote_branches]
 
-    if os.path.exists("SECURITY.md"):
-        with open("SECURITY.md", encoding="utf-8") as security_file:
+    if Path("SECURITY.md").exists():
+        with Path("SECURITY.md").open(encoding="utf-8") as security_file:
             security_text = security_file.read()
             security = security_md.Security(security_text)
 
@@ -153,7 +159,7 @@ regarding the SECURITY.md available on GitHub.
     if version:
         stabilization_branches.append(version)
 
-        if os.path.exists("SECURITY.md"):
+        if Path("SECURITY.md").exists():
             modified_files.append("SECURITY.md")
             with mra.Edit("SECURITY.md") as security_md_file:
                 security_md_lines = security_md_file.data.split("\n")
@@ -167,7 +173,7 @@ regarding the SECURITY.md available on GitHub.
                     new_line += f" {arguments.upstream_supported_until} |"
 
                 security_md_file.data = "\n".join(
-                    [*security_md_lines[: index + 1], new_line, *security_md_lines[index + 1 :]]
+                    [*security_md_lines[: index + 1], new_line, *security_md_lines[index + 1 :]],
                 )
 
     stabilization_branches_with_master = [*stabilization_branches, default_branch]
@@ -189,7 +195,7 @@ regarding the SECURITY.md available on GitHub.
             f"--description=Backport the pull request to the '{branch}' branch",
         )
 
-    if os.path.exists(".github/renovate.json5"):
+    if Path(".github/renovate.json5").exists():
         modified_files.append(".github/renovate.json5")
         with mra.EditRenovateConfig(".github/renovate.json5") as renovate_config:
             if stabilization_branches:
@@ -201,10 +207,11 @@ regarding the SECURITY.md available on GitHub.
                     )
                 else:
                     renovate_config.add(
-                        f"baseBranches: {json.dumps(stabilization_branches_with_master)},\n", "baseBranches"
+                        f"baseBranches: {json.dumps(stabilization_branches_with_master)},\n",
+                        "baseBranches",
                     )
 
-    if stabilization_branches and os.path.exists(".github/workflows/audit.yaml"):
+    if stabilization_branches and Path(".github/workflows/audit.yaml").exists():
         modified_files.append(".github/workflows/audit.yaml")
         with mra.EditYAML(".github/workflows/audit.yaml") as yaml:
             for job in yaml["jobs"].values():
@@ -229,7 +236,7 @@ regarding the SECURITY.md available on GitHub.
 
     # Commit the changes
     message = f"Create the new version '{version}'" if version else "Update the supported versions"
-    if os.path.exists(".pre-commit-config.yaml"):
+    if Path(".pre-commit-config.yaml").exists():
         subprocess.run(["pre-commit", "run", "--color=never", "--all-files"], check=False)
     subprocess.run(["git", "add", *modified_files], check=True)
     subprocess.run(["git", "commit", f"--message={message}"], check=True)

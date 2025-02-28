@@ -1,10 +1,11 @@
 """Tag Publish main module."""
 
 import json
-import os.path
+import os
 import pkgutil
 import re
 import subprocess  # nosec
+from pathlib import Path
 from re import Match, Pattern
 from typing import Any, Optional, TypedDict, cast, overload
 
@@ -38,7 +39,10 @@ class GH:
             os.environ["GITHUB_TOKEN"]
             if "GITHUB_TOKEN" in os.environ
             else subprocess.run(
-                ["gh", "auth", "token"], check=True, stdout=subprocess.PIPE, encoding="utf-8"
+                ["gh", "auth", "token"],
+                check=True,
+                stdout=subprocess.PIPE,
+                encoding="utf-8",
             ).stdout.strip()
         )
         self.auth = github.Auth.Token(token)
@@ -51,7 +55,7 @@ class GH:
                 check=True,
                 stdout=subprocess.PIPE,
                 encoding="utf-8",
-            ).stdout.strip()
+            ).stdout.strip(),
         )
         self.default_branch = self.repo.default_branch
 
@@ -66,9 +70,9 @@ def get_security_md(gh: GH, local: bool) -> security_md.Security:
 
     """
     if local:
-        if os.path.exists("SECURITY.md"):
+        if Path("SECURITY.md").exists():
             print("Using the local SECURITY.md file")
-            with open("SECURITY.md", encoding="utf-8") as open_file:
+            with Path("SECURITY.md").open(encoding="utf-8") as open_file:
                 return security_md.Security(open_file.read())
         print("No local SECURITY.md file")
         return security_md.Security("")
@@ -82,19 +86,18 @@ def get_security_md(gh: GH, local: bool) -> security_md.Security:
         if exception.status == 404:
             print("No security file in the repository")
             return security_md.Security("")
-        else:
-            raise exception
+        raise
 
 
 def get_config() -> tag_publish.configuration.Configuration:
     """Get the configuration, with project and auto detections."""
     config: tag_publish.configuration.Configuration = {}
-    if os.path.exists(".github/publish.yaml"):
+    if Path(".github/publish.yaml").exists():
         schema_data = pkgutil.get_data("tag_publish", "schema.json")
         assert schema_data is not None
         schema = json.loads(schema_data)
 
-        with open(".github/publish.yaml", encoding="utf-8") as open_file:
+        with Path(".github/publish.yaml").open(encoding="utf-8") as open_file:
             yaml_ = ruamel.yaml.YAML()
             config = yaml_.load(open_file)
             jsonschema_validator.validate(".github/publish.yaml", cast(dict[str, Any], config), schema)
@@ -136,7 +139,8 @@ def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTrans
     result = []
     for conf in config:
         new_conf = cast(
-            VersionTransform, {"to": conf.get("to", tag_publish.configuration.TRANSFORM_TO_DEFAULT)}
+            VersionTransform,
+            {"to": conf.get("to", tag_publish.configuration.TRANSFORM_TO_DEFAULT)},
         )
 
         from_re = conf.get("from_re", tag_publish.configuration.TRANSFORM_FROM_DEFAULT)
@@ -151,7 +155,8 @@ def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTrans
 
 
 def match(
-    value: str, config: list[VersionTransform]
+    value: str,
+    config: list[VersionTransform],
 ) -> tuple[Optional[Match[str]], Optional[VersionTransform], str]:
     """
     Get the matched version.
@@ -173,26 +178,25 @@ def match(
 
 
 @overload
-def download_application(application_name: str, binary_filename: str) -> str: ...
+def download_application(application_name: str, binary_filename: Path) -> Path: ...
 
 
 @overload
 def download_application(application_name: str) -> None: ...
 
 
-def download_application(application_name: str, binary_filename: Optional[str] = None) -> Optional[str]:
+def download_application(application_name: str, binary_filename: Optional[Path] = None) -> Optional[Path]:
     """Download the application if necessary, with the included version."""
-    binary_full_filename = (
-        os.path.expanduser(os.path.join("~", ".local", "bin", binary_filename)) if binary_filename else None
-    )
+    binary_full_filename = Path.home() / ".local" / "bin" / binary_filename if binary_filename else None
 
-    if not os.path.exists(binary_full_filename) if binary_full_filename else True:
+    if not binary_full_filename.exists() if binary_full_filename else True:
         applications = applications_download.load_applications(None)
         versions_data = pkgutil.get_data("tag_publish", "versions.yaml")
         assert versions_data is not None
         versions = yaml.safe_load(versions_data)
         applications_download.download_applications(
-            applications, {application_name: versions[application_name]}
+            applications,
+            {application_name: versions[application_name]},
         )
 
     return binary_full_filename

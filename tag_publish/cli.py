@@ -8,6 +8,7 @@ import os.path
 import re
 import subprocess  # nosec
 import sys
+from pathlib import Path
 from re import Match
 from typing import Optional, cast
 
@@ -95,7 +96,7 @@ def main() -> None:
         tag_match = tag_publish.match(
             ref.split("/", 2)[2],
             tag_publish.compile_re(
-                transformers.get("tag_to_version", cast(tag_publish.configuration.Transform, [{}]))
+                transformers.get("tag_to_version", cast(tag_publish.configuration.Transform, [{}])),
             ),
         )
         version = tag_publish.get_value(*tag_match)
@@ -112,7 +113,7 @@ def main() -> None:
             branch_match = tag_publish.match(
                 ref.split("/", 2)[2],
                 tag_publish.compile_re(
-                    transformers.get("branch_to_version", cast(tag_publish.configuration.Transform, [{}]))
+                    transformers.get("branch_to_version", cast(tag_publish.configuration.Transform, [{}])),
                 ),
             )
             version = tag_publish.get_value(*branch_match)
@@ -123,14 +124,14 @@ def main() -> None:
         pull_match = tag_publish.match(
             ref.split("/", 2)[2],
             tag_publish.compile_re(
-                transformers.get("pull_request_to_version", cast(tag_publish.configuration.Transform, [{}]))
+                transformers.get("pull_request_to_version", cast(tag_publish.configuration.Transform, [{}])),
             ),
         )
         version = tag_publish.get_value(*pull_match)
     else:
         print(
             f"WARNING: {ref} is not supported, only ref starting with 'refs/heads/', 'refs/tags/' "
-            "or 'refs/pull/' are supported, ignoring"
+            "or 'refs/pull/' are supported, ignoring",
         )
         sys.exit(0)
 
@@ -140,10 +141,20 @@ def main() -> None:
     published_payload: list[tag_publish.PublishedPayload] = []
 
     success &= _handle_pypi_publish(
-        args.group, args.dry_run, config, version, version_type, published_payload
+        args.group,
+        args.dry_run,
+        config,
+        version,
+        version_type,
+        published_payload,
     )
     success &= _handle_node_publish(
-        args.group, args.dry_run, config, version, version_type, published_payload
+        args.group,
+        args.dry_run,
+        config,
+        version,
+        version_type,
+        published_payload,
     )
     success &= _handle_docker_publish(
         args.group,
@@ -156,7 +167,13 @@ def main() -> None:
         security,
     )
     success &= _handle_helm_publish(
-        args.group, args.dry_run, config, version, version_type, github, published_payload
+        args.group,
+        args.dry_run,
+        config,
+        version,
+        version_type,
+        github,
+        published_payload,
     )
     _trigger_dispatch_events(config, version, version_type, published_payload, github)
 
@@ -181,7 +198,8 @@ def _handle_pypi_publish(
         for package in pypi_config.get("packages", []):
             if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in pypi_config.get(
-                    "versions_type", tag_publish.configuration.PYPI_VERSIONS_DEFAULT
+                    "versions_type",
+                    tag_publish.configuration.PYPI_VERSIONS_DEFAULT,
                 )
                 folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
                 if dry_run:
@@ -207,7 +225,9 @@ def _handle_node_publish(
         if version_type in ("default_branch", "stable_branch"):
             last_tag = (
                 subprocess.run(
-                    ["git", "describe", "--abbrev=0", "--tags"], check=True, stdout=subprocess.PIPE
+                    ["git", "describe", "--abbrev=0", "--tags"],
+                    check=True,
+                    stdout=subprocess.PIPE,
                 )
                 .stdout.strip()
                 .decode()
@@ -223,7 +243,8 @@ def _handle_node_publish(
         for package in node_config.get("packages", []):
             if package.get("group", tag_publish.configuration.NODE_PACKAGE_GROUP_DEFAULT) == group:
                 publish = version_type in node_config.get(
-                    "versions_type", tag_publish.configuration.NODE_VERSIONS_DEFAULT
+                    "versions_type",
+                    tag_publish.configuration.NODE_VERSIONS_DEFAULT,
                 )
                 folder = package.get("folder", tag_publish.configuration.NODE_PACKAGE_FOLDER_DEFAULT)
                 for repo_name, repo_config in node_config.get(
@@ -236,7 +257,7 @@ def _handle_node_publish(
                     if dry_run:
                         print(
                             f"{'Publishing' if publish else 'Checking'} '{folder}' to {repo_name}, "
-                            "skipping (dry run)"
+                            "skipping (dry run)",
                         )
                     else:
                         success &= tag_publish.publish.node(
@@ -336,7 +357,7 @@ def _handle_docker_publish(
                                     for tag in tags:
                                         print(
                                             f"Publishing {image_conf['name']}:{tag} to {name}, skipping "
-                                            "(dry run)"
+                                            "(dry run)",
                                         )
                                 else:
                                     success &= tag_publish.publish.docker(
@@ -352,6 +373,7 @@ def _handle_docker_publish(
         if dry_run:
             sys.exit(0)
 
+        dpkg_versions_path = Path(".github/dpkg-versions.yaml")
         versions_config, dpkg_config_found = tag_publish.lib.docker.get_versions_config()
         dpkg_success = True
         for image in images_src:
@@ -360,7 +382,7 @@ def _handle_docker_publish(
         if not dpkg_success:
             current_versions_in_images: dict[str, dict[str, str]] = {}
             if dpkg_config_found:
-                with open(".github/dpkg-versions.yaml", encoding="utf-8") as dpkg_versions_file:
+                with dpkg_versions_path.open(encoding="utf-8") as dpkg_versions_file:
                     current_versions_in_images = yaml.load(dpkg_versions_file, Loader=yaml.SafeLoader)
             for image in images_src:
                 if image in current_versions_in_images:
@@ -375,12 +397,12 @@ def _handle_docker_publish(
             if dpkg_config_found:
                 print(
                     "::error::Some packages are have a greater version in the config raster then "
-                    "in the image."
+                    "in the image.",
                 )
             print("Current versions of the Debian packages in Docker images:")
             print(yaml.dump(current_versions_in_images, Dumper=yaml.SafeDumper, default_flow_style=False))
             if dpkg_config_found:
-                with open(".github/dpkg-versions.yaml", "w", encoding="utf-8") as dpkg_versions_file:
+                with dpkg_versions_path.open("w", encoding="utf-8") as dpkg_versions_file:
                     yaml.dump(
                         current_versions_in_images,
                         dpkg_versions_file,
@@ -417,7 +439,9 @@ def _handle_helm_publish(
         if version_type in ("default_branch", "stabilization_branch"):
             last_tag = (
                 subprocess.run(
-                    ["git", "describe", "--abbrev=0", "--tags"], check=True, stdout=subprocess.PIPE
+                    ["git", "describe", "--abbrev=0", "--tags"],
+                    check=True,
+                    stdout=subprocess.PIPE,
                 )
                 .stdout.strip()
                 .decode()
@@ -433,7 +457,8 @@ def _handle_helm_publish(
         for package in helm_config["packages"]:
             if package.get("group", tag_publish.configuration.HELM_PACKAGE_GROUP_DEFAULT) == group:
                 versions_type = helm_config.get(
-                    "versions_type", tag_publish.configuration.HELM_VERSIONS_DEFAULT
+                    "versions_type",
+                    tag_publish.configuration.HELM_VERSIONS_DEFAULT,
                 )
                 publish = version_type in versions_type
                 folder = package.get("folder", tag_publish.configuration.HELM_PACKAGE_FOLDER_DEFAULT)
@@ -447,7 +472,7 @@ def _handle_helm_publish(
                 else:
                     print(
                         f"::notice::The folder '{folder}' will be published as helm on version types: "
-                        f"{', '.join(versions_type)}"
+                        f"{', '.join(versions_type)}",
                     )
     return success
 

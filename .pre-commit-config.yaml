@@ -1,3 +1,8 @@
+exclude: |-
+  (?x)^(
+    tag_publish/configuration\.py
+  )$
+
 repos:
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0
@@ -19,7 +24,7 @@ repos:
       - id: trailing-whitespace
       - id: mixed-line-ending
   - repo: https://github.com/camptocamp/jsonschema-gentypes
-    rev: 2.9.3
+    rev: 2.10.0
     hooks:
       - id: jsonschema-gentypes
         files: |-
@@ -46,12 +51,12 @@ repos:
           - tag_publish/schema.json
           - config.md
   - repo: https://github.com/sbrunner/hooks
-    rev: 1.2.1
+    rev: 1.3.0
     hooks:
       - id: copyright
       - id: poetry-lock
         additional_dependencies:
-          - poetry==2.0.1 # pypi
+          - poetry==2.1.1 # pypi
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
@@ -64,10 +69,6 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
-  - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 3.0.0
-    hooks:
-      - id: git-check
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.31.2
     hooks:
@@ -82,33 +83,29 @@ repos:
           - --builtin-schema
           - github-workflows-require-timeout
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 39.133.4
+    rev: 39.174.3
     hooks:
       - id: renovate-config-validator
   - repo: https://github.com/sirwart/ripsecrets
     rev: v0.1.8
     hooks:
       - id: ripsecrets
+  - repo: https://github.com/PyCQA/prospector
+    rev: v1.15.2
+    hooks:
+      - id: prospector
+        args:
+          - --die-on-tool-error
+          - --output-format=pylint
+          - --profile=utils:pre-commit
+          - --profile=.prospector.yaml
+        additional_dependencies:
+          - prospector-profile-duplicated==1.10.4 # pypi
+          - prospector-profile-utils==1.21.7 # pypi
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.7
     hooks:
       - id: ruff-format
-      - id: ruff
-        args:
-          - --fix
-          - --unsafe-fixes
-  - repo: https://github.com/PyCQA/prospector
-    rev: v1.14.1
-    hooks:
-      - id: prospector
-        args:
-          - --tool=ruff
-          - --die-on-tool-error
-          - --output-format=pylint
-        additional_dependencies:
-          - prospector-profile-duplicated==1.10.4 # pypi
-          - prospector-profile-utils==1.17.0 # pypi
-          - ruff==0.9.7 # pypi
   - repo: https://github.com/mheap/json-schema-spell-checker
     rev: main
     hooks:

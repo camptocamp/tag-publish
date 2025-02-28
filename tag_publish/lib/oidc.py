@@ -9,6 +9,7 @@ import base64
 import json
 import os
 import sys
+from pathlib import Path
 from typing import NoReturn
 
 import id as oidc_id
@@ -20,7 +21,7 @@ class _OidcError(Exception):
 
 
 def _fatal(message: str) -> NoReturn:
-    # HACK: GitHub Actions' annotations don't work across multiple lines naively;
+    # HACK: GitHub Actions' annotations don't work across multiple lines naively; # noqa: FIX004
     # translating `\n` into `%0A` (i.e., HTML percent-encoding) is known to work.
     # See: https://github.com/actions/toolkit/issues/193
     message = message.replace("\n", "%0A")
@@ -81,7 +82,7 @@ permissions:
 ```
 
 Learn more at https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings.
-"""
+""",
         )
 
     # Now we can do the actual token exchange.
@@ -105,15 +106,14 @@ This strongly suggests a server configuration or downtime issue; wait
 a few minutes and try again.
 
 You can monitor PyPI's status here: https://status.python.org/
-"""  # noqa: E702
+""",
         )
 
     # On failure, the JSON response includes the list of errors that
     # occurred during minting.
     if not mint_token_resp.ok:
         reasons = "\n".join(
-            f"* `{error['code']}`: {error['description']}"
-            for error in mint_token_payload["errors"]  # noqa: W604
+            f"* `{error['code']}`: {error['description']}" for error in mint_token_payload["errors"]
         )
 
         rendered_claims = _render_claims(oidc_token)
@@ -128,7 +128,7 @@ This generally indicates a trusted publisher configuration error, but could
 also indicate an internal error on GitHub or PyPI's part.
 
 {rendered_claims}
-"""
+""",
         )
 
     pypi_token = mint_token_payload.get("token")
@@ -139,7 +139,7 @@ Token response error: the index gave us an invalid response.
 
 This strongly suggests a server configuration or downtime issue; wait
 a few minutes and try again.
-"""
+""",
         )
 
     # Mask the newly minted PyPI token, so that we don't accidentally leak it in logs.
@@ -159,10 +159,10 @@ def pypi_login() -> None:
     - https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi
 
     """
-    pypirc_filename = os.path.expanduser("~/.pypirc")
+    pypirc_filename = Path("~/.pypirc").expanduser()
 
-    if os.path.exists(pypirc_filename):
-        print(f"::notice::{pypirc_filename} already exists; consider as already logged in.")  # noqa: E702
+    if pypirc_filename.exists():
+        print(f"::notice::{pypirc_filename} already exists; consider as already logged in.")
         return
 
     if "ACTIONS_ID_TOKEN_REQUEST_TOKEN" not in os.environ:
@@ -172,13 +172,13 @@ def pypi_login() -> None:
               permissions:
                 id-token: write
               ```
-              See also: https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect"""
+              See also: https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect""",
         )
         return
 
     try:
         token = _get_token("pypi.org")
-        with open(pypirc_filename, "w", encoding="utf-8") as pypirc_file:
+        with pypirc_filename.open("w", encoding="utf-8") as pypirc_file:
             pypirc_file.write("[pypi]\n")
             pypirc_file.write("repository: https://upload.pypi.org/legacy/\n")
             pypirc_file.write("username: __token__\n")
