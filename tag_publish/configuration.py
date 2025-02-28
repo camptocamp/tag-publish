@@ -96,7 +96,7 @@ DOCKER_REPOSITORY_DEFAULT = {
     "github": {
         "host": "ghcr.io",
         "versions_type": ["tag", "default_branch", "stabilization_branch", "rebuild"],
-    }
+    },
 }
 """ Default value of the field path 'Docker repository' """
 

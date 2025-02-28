@@ -38,7 +38,10 @@ class GH:
             os.environ["GITHUB_TOKEN"]
             if "GITHUB_TOKEN" in os.environ
             else subprocess.run(
-                ["gh", "auth", "token"], check=True, stdout=subprocess.PIPE, encoding="utf-8"
+                ["gh", "auth", "token"],
+                check=True,
+                stdout=subprocess.PIPE,
+                encoding="utf-8",
             ).stdout.strip()
         )
         self.auth = github.Auth.Token(token)
@@ -51,7 +54,7 @@ class GH:
                 check=True,
                 stdout=subprocess.PIPE,
                 encoding="utf-8",
-            ).stdout.strip()
+            ).stdout.strip(),
         )
         self.default_branch = self.repo.default_branch
 
@@ -82,8 +85,7 @@ def get_security_md(gh: GH, local: bool) -> security_md.Security:
         if exception.status == 404:
             print("No security file in the repository")
             return security_md.Security("")
-        else:
-            raise exception
+        raise exception
 
 
 def get_config() -> tag_publish.configuration.Configuration:
@@ -136,7 +138,8 @@ def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTrans
     result = []
     for conf in config:
         new_conf = cast(
-            VersionTransform, {"to": conf.get("to", tag_publish.configuration.TRANSFORM_TO_DEFAULT)}
+            VersionTransform,
+            {"to": conf.get("to", tag_publish.configuration.TRANSFORM_TO_DEFAULT)},
         )
 
         from_re = conf.get("from_re", tag_publish.configuration.TRANSFORM_FROM_DEFAULT)
@@ -151,7 +154,8 @@ def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTrans
 
 
 def match(
-    value: str, config: list[VersionTransform]
+    value: str,
+    config: list[VersionTransform],
 ) -> tuple[Optional[Match[str]], Optional[VersionTransform], str]:
     """
     Get the matched version.
@@ -192,7 +196,8 @@ def download_application(application_name: str, binary_filename: Optional[str] =
         assert versions_data is not None
         versions = yaml.safe_load(versions_data)
         applications_download.download_applications(
-            applications, {application_name: versions[application_name]}
+            applications,
+            {application_name: versions[application_name]},
         )
 
     return binary_full_filename

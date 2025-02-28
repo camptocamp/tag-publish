@@ -114,7 +114,7 @@ regarding the SECURITY.md available on GitHub.
 
     # Checkout a new branch named new-version
     if arguments.force:
-        subprocess.run(["git", "branch", "-D", branch_name])  # pylint: disable=subprocess-run-check
+        subprocess.run(["git", "branch", "-D", branch_name], check=False)  # pylint: disable=subprocess-run-check
     subprocess.run(["git", "checkout", "-b", branch_name], check=True)
 
     # # # Do the changes for the new version # # #
@@ -122,14 +122,20 @@ regarding the SECURITY.md available on GitHub.
     remotes = [
         r
         for r in subprocess.run(
-            ["git", "remote"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+            ["git", "remote"],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+            check=True,
         ).stdout.split()
         if r != ""
     ]
     remote_branches = [
         b.strip()[len("remotes/") :]
         for b in subprocess.run(
-            ["git", "branch", "--all"], stdout=subprocess.PIPE, encoding="utf-8", check=True
+            ["git", "branch", "--all"],
+            stdout=subprocess.PIPE,
+            encoding="utf-8",
+            check=True,
         ).stdout.split()
         if b != "" and b.strip().startswith("remotes/")
     ]
@@ -167,7 +173,7 @@ regarding the SECURITY.md available on GitHub.
                     new_line += f" {arguments.upstream_supported_until} |"
 
                 security_md_file.data = "\n".join(
-                    [*security_md_lines[: index + 1], new_line, *security_md_lines[index + 1 :]]
+                    [*security_md_lines[: index + 1], new_line, *security_md_lines[index + 1 :]],
                 )
 
     stabilization_branches_with_master = [*stabilization_branches, default_branch]
@@ -201,7 +207,8 @@ regarding the SECURITY.md available on GitHub.
                     )
                 else:
                     renovate_config.add(
-                        f"baseBranches: {json.dumps(stabilization_branches_with_master)},\n", "baseBranches"
+                        f"baseBranches: {json.dumps(stabilization_branches_with_master)},\n",
+                        "baseBranches",
                     )
 
     if stabilization_branches and os.path.exists(".github/workflows/audit.yaml"):

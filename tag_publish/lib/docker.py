@@ -82,7 +82,7 @@ def get_dpkg_packages_versions(
                     if package in package_version and version != package_version[package]:
                         print(
                             f"The package {package} has different version "
-                            f"({package_version[package]} != {version})"
+                            f"({package_version[package]} != {version})",
                         )
                     if package not in ("base-files",):
                         package_version[package] = version
@@ -129,7 +129,7 @@ def check_versions(
         elif Version.from_string(versions_config[package]) > version:
             print(
                 f"Package {package} is older than the config file for the image {image}: "
-                f"{versions_config[package]} > {version}."
+                f"{versions_config[package]} > {version}.",
             )
             success = False
 
