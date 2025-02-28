@@ -7,14 +7,6 @@ headers: |
 
 python_version: '3.9'
 
-pre_commit:
-  enabled: true
-  hooks_skip:
-    - jsonschema-gentypes
-    - shellcheck
-  arguments:
-    - --color=never
-
 generate:
   - source: tag_publish/schema.json
     destination: tag_publish/configuration.py
