@@ -875,19 +875,20 @@ files = [
 
 [[package]]
 name = "multi-repo-automation"
-version = "1.5.0"
+version = "1.7.0"
 description = "Library for automation updates on multiple repositories."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "multi_repo_automation-1.5.0-py3-none-any.whl", hash = "sha256:60590e3a0fd5c67bb1525340d0f25f02d4e7304576cd7cfc596f182ec343220c"},
-    {file = "multi_repo_automation-1.5.0.tar.gz", hash = "sha256:a64fa7a7134eaa42c3bf5cfc7cac3d143cfa0607cb06c3da9c77edc23e067f2b"},
+    {file = "multi_repo_automation-1.7.0-py3-none-any.whl", hash = "sha256:f49c49bf94d4b24dfd85f37583a7b06dba2091cf43357c15a83c6c2ef268cea1"},
+    {file = "multi_repo_automation-1.7.0.tar.gz", hash = "sha256:8f88b655b859c5b474226ff3eaed78c2d24ec6f5a930bb812646876d36a533b8"},
 ]
 
 [package.dependencies]
 configupdater = "*"
 identify = "*"
 json5 = "*"
+packaging = "*"
 PyYAML = "*"
 requests = "*"
 "ruamel.yaml" = "*"
@@ -1105,13 +1106,13 @@ files = [
 
 [[package]]
 name = "prospector-profile-utils"
-version = "1.17.0"
+version = "1.20.2"
 description = "Some utility Prospector profiles."
 optional = false
-python-versions = "<4.0,>=3.9"
+python-versions = "*"
 files = [
-    {file = "prospector_profile_utils-1.17.0-py3-none-any.whl", hash = "sha256:0cb7fe9dfca2b49c21733bbc4d3aabd51c7c0890c5e636b8d2f7b81c342aef6e"},
-    {file = "prospector_profile_utils-1.17.0.tar.gz", hash = "sha256:ac75faf9b13a6b6c18173cad71e6879e6ac40c5f5fda57c69f064b8a955705bd"},
+    {file = "prospector_profile_utils-1.20.2-py2.py3-none-any.whl", hash = "sha256:f550758a67c401df6a293a3461120fb22d7f3da0e8f93f3b04dbc2c67cbdd05e"},
+    {file = "prospector_profile_utils-1.20.2.tar.gz", hash = "sha256:ac26adee6db3abfe931ea236b4202dd98f695405f25bd795121b2591262df66b"},
 ]
 
 [package.dependencies]
@@ -1169,13 +1170,13 @@ files = [
 
 [[package]]
 name = "pygithub"
-version = "2.5.0"
+version = "2.6.1"
 description = "Use the full Github API v3"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "PyGithub-2.5.0-py3-none-any.whl", hash = "sha256:b0b635999a658ab8e08720bdd3318893ff20e2275f6446fcf35bf3f44f2c0fd2"},
-    {file = "pygithub-2.5.0.tar.gz", hash = "sha256:e1613ac508a9be710920d26eb18b1905ebd9926aa49398e88151c1b526aad3cf"},
+    {file = "PyGithub-2.6.1-py3-none-any.whl", hash = "sha256:6f2fa6d076ccae475f9fc392cc6cdbd54db985d4f69b8833a28397de75ed6ca3"},
+    {file = "pygithub-2.6.1.tar.gz", hash = "sha256:b5c035392991cca63959e9453286b41b54d83bf2de2daa7d7ff7e4312cebf3bf"},
 ]
 
 [package.dependencies]
@@ -2150,4 +2151,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "3e26a7e0625ec7744a118a886b5d81a85d672b66ea39e826d4919b559dd20503"
+content-hash = "23b356210a6d9bfcdc24cdaf49142fcff2827ad02dedcd30e806382a4ff7945d"
