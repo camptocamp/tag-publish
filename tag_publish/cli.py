@@ -8,6 +8,7 @@ import os.path
 import re
 import subprocess  # nosec
 import sys
+from pathlib import Path
 from re import Match
 from typing import Optional, cast
 
@@ -372,6 +373,7 @@ def _handle_docker_publish(
         if dry_run:
             sys.exit(0)
 
+        dpkg_versions_path = Path(".github/dpkg-versions.yaml")
         versions_config, dpkg_config_found = tag_publish.lib.docker.get_versions_config()
         dpkg_success = True
         for image in images_src:
@@ -380,7 +382,7 @@ def _handle_docker_publish(
         if not dpkg_success:
             current_versions_in_images: dict[str, dict[str, str]] = {}
             if dpkg_config_found:
-                with open(".github/dpkg-versions.yaml", encoding="utf-8") as dpkg_versions_file:
+                with dpkg_versions_path.open(encoding="utf-8") as dpkg_versions_file:
                     current_versions_in_images = yaml.load(dpkg_versions_file, Loader=yaml.SafeLoader)
             for image in images_src:
                 if image in current_versions_in_images:
@@ -400,7 +402,7 @@ def _handle_docker_publish(
             print("Current versions of the Debian packages in Docker images:")
             print(yaml.dump(current_versions_in_images, Dumper=yaml.SafeDumper, default_flow_style=False))
             if dpkg_config_found:
-                with open(".github/dpkg-versions.yaml", "w", encoding="utf-8") as dpkg_versions_file:
+                with dpkg_versions_path.open("w", encoding="utf-8") as dpkg_versions_file:
                     yaml.dump(
                         current_versions_in_images,
                         dpkg_versions_file,

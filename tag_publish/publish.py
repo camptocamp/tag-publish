@@ -1,12 +1,12 @@
 """The publishing functions."""
 
 import datetime
-import glob
 import json
 import os
 import re
 import subprocess  # nosec
 import sys
+from pathlib import Path
 from typing import Optional
 
 import ruamel
@@ -42,27 +42,27 @@ def pip(
         env["VERSION"] = version
         env["VERSION_TYPE"] = version_type
 
-        cwd = os.path.abspath(folder)
+        cwd = Path(folder).resolve()
 
-        dist = os.path.join(cwd, "dist")
-        if not os.path.exists(dist):
-            os.mkdir(dist)
-        if os.path.exists(os.path.join(cwd, "setup.py")):
+        dist = cwd / "dist"
+        if not dist.exists():
+            dist.mkdir()
+        if (cwd / "setup.py").exists():
             cmd = ["python3", "./setup.py", "egg_info", "--no-date"]
             cmd += (
-                ["--tag-build=dev" + datetime.datetime.now().strftime("%Y%m%d%H%M%S")]
+                ["--tag-build=dev" + datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y%m%d%H%M%S")]
                 if version_type in ("default_branch", "stabilization_branch", "rebuild")
                 else []
             )
             cmd.append("bdist_wheel")
         else:
-            if not os.path.exists(dist):
-                os.mkdir(dist)
+            if not dist.exists():
+                dist.mkdir()
             cmd = ["pip", "wheel", "--no-deps", "--wheel-dir=dist", "."]
-            if os.path.exists(os.path.join(cwd, "pyproject.toml")):
+            if (cwd / "pyproject.toml").exists():
                 use_poetry = False
                 if "build_command" not in package:
-                    with open(os.path.join(cwd, "pyproject.toml"), "rb") as project_file:
+                    with (cwd / "pyproject.toml").open("rb") as project_file:
                         pyproject = tomllib.load(project_file)
                     re_splitter = re.compile(r"[<>=]+")
                     for requirement in pyproject.get("build-system", {}).get("requires", []):
@@ -84,10 +84,12 @@ def pip(
         if cmd:
             cmd = package.get("build_command", cmd)
             subprocess.check_call(cmd, cwd=cwd, env=env)
-        cmd = ["twine"]
-        cmd += ["upload", "--verbose", "--disable-progress-bar"] if publish else ["check"]
-        cmd += glob.glob(os.path.join(cwd, "dist/*.whl"))
-        cmd += glob.glob(os.path.join(cwd, "dist/*.tar.gz"))
+        cmd = [
+            "twine",
+            *(["upload", "--verbose", "--disable-progress-bar"] if publish else ["check"]),
+            *[str(f) for f in cwd.glob("dist/*.whl")],
+            *[str(f) for f in cwd.glob("dist/*.tar.gz")],
+        ]
         subprocess.check_call(cmd)
         print("::endgroup::")
     except subprocess.CalledProcessError as exception:
@@ -127,23 +129,24 @@ def node(
 
     try:
         if version_type == "tag":
-            with open(os.path.join(folder, "package.json"), encoding="utf-8") as open_file:
-                package_json = json.loads(open_file.read())
+            path = Path(folder) / "package.json"
+            with path.open(encoding="utf-8") as open_file:
+                package_json = json.load(open_file)
             package_json["version"] = version
-            with open(os.path.join(folder, "package.json"), "w", encoding="utf-8") as open_file:
+            with path.open("w", encoding="utf-8") as open_file:
                 open_file.write(json.dumps(package_json, indent=2) + "\n")
 
-        cwd = os.path.abspath(folder)
+        cwd = Path(folder).resolve()
 
         is_github = repo_config["host"] == "npm.pkg.github.com"
         old_npmrc = None
-        npmrc_filename = os.path.expanduser("~/.npmrc")
+        npmrc_filename = Path("~/.npmrc").expanduser()
         if is_github:
             old_npmrc = None
-            if os.path.exists(npmrc_filename):
-                with open(npmrc_filename, encoding="utf-8") as open_file:
+            if npmrc_filename.exists():
+                with npmrc_filename.open(encoding="utf-8") as open_file:
                     old_npmrc = open_file.read()
-            with open(npmrc_filename, "w", encoding="utf-8") as open_file:
+            with npmrc_filename.open("w", encoding="utf-8") as open_file:
                 open_file.write(f"//npm.pkg.github.com/:_authToken={os.environ['GITHUB_TOKEN']}\n")
                 open_file.write("always-auth=true\n")
 
@@ -152,9 +155,9 @@ def node(
 
         if is_github:
             if old_npmrc is None:
-                os.remove(npmrc_filename)
+                npmrc_filename.unlink()
             else:
-                with open(npmrc_filename, "w", encoding="utf-8") as open_file:
+                with npmrc_filename.open("w", encoding="utf-8") as open_file:
                     open_file.write(old_npmrc)
         print("::endgroup::")
     except subprocess.CalledProcessError as exception:
@@ -280,10 +283,10 @@ def helm(folder: str, version: str, owner: str, repo: str, commit_sha: str, toke
 
     try:
         yaml_ = ruamel.yaml.YAML()
-        with open(os.path.join(folder, "Chart.yaml"), encoding="utf-8") as open_file:
+        with (Path(folder) / "Chart.yaml").open(encoding="utf-8") as open_file:
             chart = yaml_.load(open_file)
         chart["version"] = version
-        with open(os.path.join(folder, "Chart.yaml"), "w", encoding="utf-8") as open_file:
+        with (Path(folder) / "Chart.yaml").open("w", encoding="utf-8") as open_file:
             yaml_.dump(chart, open_file)
         for index, dependency in enumerate(chart.get("dependencies", [])):
             if dependency["repository"].startswith("https://"):
@@ -309,8 +312,8 @@ def helm(folder: str, version: str, owner: str, repo: str, commit_sha: str, toke
             ],
             check=True,
         )
-        if not os.path.exists(".cr-index"):
-            os.mkdir(".cr-index")
+        if not Path(".cr-index").exists():
+            Path(".cr-index").mkdir()
         subprocess.run(
             [
                 "cr",

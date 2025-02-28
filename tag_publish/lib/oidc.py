@@ -9,6 +9,7 @@ import base64
 import json
 import os
 import sys
+from pathlib import Path
 from typing import NoReturn
 
 import id as oidc_id
@@ -20,7 +21,7 @@ class _OidcError(Exception):
 
 
 def _fatal(message: str) -> NoReturn:
-    # HACK: GitHub Actions' annotations don't work across multiple lines naively;
+    # HACK: GitHub Actions' annotations don't work across multiple lines naively; # noqa: FIX004
     # translating `\n` into `%0A` (i.e., HTML percent-encoding) is known to work.
     # See: https://github.com/actions/toolkit/issues/193
     message = message.replace("\n", "%0A")
@@ -158,9 +159,9 @@ def pypi_login() -> None:
     - https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-pypi
 
     """
-    pypirc_filename = os.path.expanduser("~/.pypirc")
+    pypirc_filename = Path("~/.pypirc").expanduser()
 
-    if os.path.exists(pypirc_filename):
+    if pypirc_filename.exists():
         print(f"::notice::{pypirc_filename} already exists; consider as already logged in.")
         return
 
@@ -177,7 +178,7 @@ def pypi_login() -> None:
 
     try:
         token = _get_token("pypi.org")
-        with open(pypirc_filename, "w", encoding="utf-8") as pypirc_file:
+        with pypirc_filename.open("w", encoding="utf-8") as pypirc_file:
             pypirc_file.write("[pypi]\n")
             pypirc_file.write("repository: https://upload.pypi.org/legacy/\n")
             pypirc_file.write("username: __token__\n")

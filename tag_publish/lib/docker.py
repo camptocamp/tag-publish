@@ -1,7 +1,7 @@
 """Some utility functions for Docker images."""
 
-import os
 import subprocess  # nosec: B404
+from pathlib import Path
 from typing import Optional, cast
 
 import yaml
@@ -96,8 +96,9 @@ def get_dpkg_packages_versions(
 
 def get_versions_config() -> tuple[dict[str, dict[str, str]], bool]:
     """Get the versions from the config file."""
-    if os.path.exists(".github/dpkg-versions.yaml"):
-        with open(".github/dpkg-versions.yaml", encoding="utf-8") as versions_file:
+    dpkg_versions_path = Path(".github/dpkg-versions.yaml")
+    if dpkg_versions_path.exists():
+        with dpkg_versions_path.open(encoding="utf-8") as versions_file:
             return (
                 cast(dict[str, dict[str, str]], yaml.load(versions_file.read(), Loader=yaml.SafeLoader)),
                 True,
