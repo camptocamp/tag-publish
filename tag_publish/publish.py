@@ -146,7 +146,7 @@ def node(
                 open_file.write(f"//npm.pkg.github.com/:_authToken={os.environ['GITHUB_TOKEN']}\n")
                 open_file.write("always-auth=true\n")
 
-        subprocess.run(["npm", "set", "registry", f'https://{repo_config["host"]}'], cwd=cwd, check=True)
+        subprocess.run(["npm", "set", "registry", f"https://{repo_config['host']}"], cwd=cwd, check=True)
         subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"]), *args], cwd=cwd, check=True)
 
         if is_github:
