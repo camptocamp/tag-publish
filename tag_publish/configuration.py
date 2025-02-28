@@ -2,6 +2,7 @@
 Automatically generated file from a JSON schema.
 """
 
+
 from typing import Any, TypedDict
 
 
@@ -60,56 +61,55 @@ class Configuration(TypedDict, total=False):
     """
 
 
+
 DISPATCH_CONFIG_DEFAULT: dict[str, Any] = {}
 """ Default value of the field path 'Dispatch item' """
+
 
 
 DISPATCH_DEFAULT: list[Any] = []
 """ Default value of the field path 'Tag publish configuration dispatch' """
 
 
-DISPATCH_EVENT_TYPE_DEFAULT = "published"
+
+DISPATCH_EVENT_TYPE_DEFAULT = 'published'
 """ Default value of the field path 'dispatch config event_type' """
 
 
-DISPATCH_REPOSITORY_DEFAULT = "camptocamp/argocd-gs-gmf-apps"
+
+DISPATCH_REPOSITORY_DEFAULT = 'camptocamp/argocd-gs-gmf-apps'
 """ Default value of the field path 'dispatch config repository' """
+
 
 
 DOCKER_AUTO_LOGIN_DEFAULT = True
 """ Default value of the field path 'Docker github_oidc_login' """
 
 
-DOCKER_IMAGE_GROUP_DEFAULT = "default"
+
+DOCKER_IMAGE_GROUP_DEFAULT = 'default'
 """ Default value of the field path 'Docker image group' """
 
 
-DOCKER_IMAGE_TAGS_DEFAULT = ["{version}"]
+
+DOCKER_IMAGE_TAGS_DEFAULT = ['{version}']
 """ Default value of the field path 'Docker image tags' """
+
 
 
 DOCKER_LATEST_DEFAULT = True
 """ Default value of the field path 'Docker latest' """
 
 
-DOCKER_REPOSITORY_DEFAULT = {
-    "github": {
-        "host": "ghcr.io",
-        "versions_type": ["tag", "default_branch", "stabilization_branch", "rebuild"],
-    },
-}
+
+DOCKER_REPOSITORY_DEFAULT = {'github': {'host': 'ghcr.io', 'versions_type': ['tag', 'default_branch', 'stabilization_branch', 'rebuild']}}
 """ Default value of the field path 'Docker repository' """
 
 
-DOCKER_REPOSITORY_VERSIONS_DEFAULT = [
-    "tag",
-    "default_branch",
-    "stabilization_branch",
-    "rebuild",
-    "feature_branch",
-    "pull_request",
-]
+
+DOCKER_REPOSITORY_VERSIONS_DEFAULT = ['tag', 'default_branch', 'stabilization_branch', 'rebuild', 'feature_branch', 'pull_request']
 """ Default value of the field path 'Docker repository versions_type' """
+
 
 
 class DispatchConfig(TypedDict, total=False):
@@ -139,6 +139,7 @@ class DispatchConfig(TypedDict, total=False):
 
     default: published
     """
+
 
 
 class Docker(TypedDict, total=False):
@@ -186,8 +187,9 @@ class Docker(TypedDict, total=False):
     """
 
 
+
 class DockerImage(TypedDict, total=False):
-    """Docker image."""
+    """ Docker image. """
 
     group: str
     """
@@ -212,8 +214,9 @@ class DockerImage(TypedDict, total=False):
     """
 
 
+
 class DockerRepository(TypedDict, total=False):
-    """Docker repository."""
+    """ Docker repository. """
 
     host: str
     """ The host of the repository URL """
@@ -234,16 +237,20 @@ class DockerRepository(TypedDict, total=False):
     """
 
 
-HELM_PACKAGE_FOLDER_DEFAULT = "."
+
+HELM_PACKAGE_FOLDER_DEFAULT = '.'
 """ Default value of the field path 'helm package folder' """
 
 
-HELM_PACKAGE_GROUP_DEFAULT = "default"
+
+HELM_PACKAGE_GROUP_DEFAULT = 'default'
 """ Default value of the field path 'helm package group' """
 
 
-HELM_VERSIONS_DEFAULT = ["tag"]
+
+HELM_VERSIONS_DEFAULT = ['tag']
 """ Default value of the field path 'helm versions_type' """
+
 
 
 class Helm(TypedDict, total=False):
@@ -265,6 +272,7 @@ class Helm(TypedDict, total=False):
     default:
       - tag
     """
+
 
 
 class HelmPackage(TypedDict, total=False):
@@ -293,24 +301,30 @@ class HelmPackage(TypedDict, total=False):
     """
 
 
-NODE_ARGS_DEFAULT = ["--provenance", "--access=public"]
+
+NODE_ARGS_DEFAULT = ['--provenance', '--access=public']
 """ Default value of the field path 'node args' """
 
 
-NODE_PACKAGE_FOLDER_DEFAULT = "."
+
+NODE_PACKAGE_FOLDER_DEFAULT = '.'
 """ Default value of the field path 'node package folder' """
 
 
-NODE_PACKAGE_GROUP_DEFAULT = "default"
+
+NODE_PACKAGE_GROUP_DEFAULT = 'default'
 """ Default value of the field path 'node package group' """
 
 
-NODE_REPOSITORY_DEFAULT = {"github": {"host": "npm.pkg.github.com"}}
+
+NODE_REPOSITORY_DEFAULT = {'github': {'host': 'npm.pkg.github.com'}}
 """ Default value of the field path 'node repository' """
 
 
-NODE_VERSIONS_DEFAULT = ["tag"]
+
+NODE_VERSIONS_DEFAULT = ['tag']
 """ Default value of the field path 'node versions_type' """
+
 
 
 class Node(TypedDict, total=False):
@@ -356,6 +370,7 @@ class Node(TypedDict, total=False):
     """
 
 
+
 class NodePackage(TypedDict, total=False):
     """
     node package.
@@ -382,23 +397,28 @@ class NodePackage(TypedDict, total=False):
     """
 
 
+
 class NodeRepository(TypedDict, total=False):
-    """Node repository."""
+    """ Node repository. """
 
     host: str
     """ The host of the repository URL """
 
 
-PIP_PACKAGE_GROUP_DEFAULT = "default"
+
+PIP_PACKAGE_GROUP_DEFAULT = 'default'
 """ Default value of the field path 'pypi package group' """
 
 
-PYPI_PACKAGE_FOLDER_DEFAULT = "."
+
+PYPI_PACKAGE_FOLDER_DEFAULT = '.'
 """ Default value of the field path 'pypi package folder' """
 
 
-PYPI_VERSIONS_DEFAULT = ["tag"]
+
+PYPI_VERSIONS_DEFAULT = ['tag']
 """ Default value of the field path 'pypi versions_type' """
+
 
 
 class Pypi(TypedDict, total=False):
@@ -420,6 +440,7 @@ class Pypi(TypedDict, total=False):
     default:
       - tag
     """
+
 
 
 class PypiPackage(TypedDict, total=False):
@@ -451,20 +472,25 @@ class PypiPackage(TypedDict, total=False):
     """ The command used to do the build """
 
 
-TRANSFORMERS_DEFAULT = {"pull_request_to_version": [{"to": "pr-\\1"}]}
+
+TRANSFORMERS_DEFAULT = {'pull_request_to_version': [{'to': 'pr-\\1'}]}
 """ Default value of the field path 'Tag publish configuration transformers' """
+
 
 
 TRANSFORM_DEFAULT: list[Any] = []
 """ Default value of the field path 'transform' """
 
 
-TRANSFORM_FROM_DEFAULT = "(.+)"
+
+TRANSFORM_FROM_DEFAULT = '(.+)'
 """ Default value of the field path 'Version transform from_re' """
 
 
-TRANSFORM_TO_DEFAULT = "\\1"
+
+TRANSFORM_TO_DEFAULT = '\\1'
 """ Default value of the field path 'Version transform to' """
+
 
 
 Transform = list["VersionTransform"]
@@ -476,6 +502,7 @@ A version transformer definition
 default:
   []
 """
+
 
 
 class Transformers(TypedDict, total=False):
@@ -520,8 +547,9 @@ class Transformers(TypedDict, total=False):
     """
 
 
+
 class VersionTransform(TypedDict, total=False):
-    """Version transform."""
+    """ Version transform. """
 
     from_re: str
     """
@@ -540,3 +568,4 @@ class VersionTransform(TypedDict, total=False):
 
     default: \1
     """
+
