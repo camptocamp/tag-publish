@@ -54,9 +54,9 @@ debian-inspector = "31.1.0"
 multi-repo-automation = "1.7.0"
 
 [tool.poetry.group.dev.dependencies]
-prospector = { version = "1.14.1", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
+prospector = { version = "1.15.2", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
 prospector-profile-duplicated = "1.10.4"
-prospector-profile-utils = "1.20.2"
+prospector-profile-utils = "1.21.7"
 types-requests = "2.32.0.20241016"
 types-pyyaml = "6.0.12.20241230"
 
