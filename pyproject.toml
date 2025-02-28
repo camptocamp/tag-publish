@@ -43,7 +43,7 @@ tag-publish-new = "tag_publish.new:main"
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
 requests = "2.32.3"
-twine = "5.1.1"
+twine = "6.1.0"
 PyYAML = "6.0.2"
 id = "1.5.0"
 security-md = "1.0.0"
