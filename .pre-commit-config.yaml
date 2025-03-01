@@ -111,7 +111,7 @@ repos:
           - --profile=utils:tests
           - --profile=utils:pre-commit
         additional_dependencies:
-          - prospector-profile-utils==1.21.4 # pypi
+          - prospector-profile-utils==1.21.7 # pypi
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.9.7
     hooks:
