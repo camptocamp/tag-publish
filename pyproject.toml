@@ -56,7 +56,7 @@ multi-repo-automation = "1.7.0"
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.15.2", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
 prospector-profile-duplicated = "1.10.4"
-prospector-profile-utils = "1.21.7"
+prospector-profile-utils = "1.21.9"
 types-requests = "2.32.0.20241016"
 types-pyyaml = "6.0.12.20241230"
 
