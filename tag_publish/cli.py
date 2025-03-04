@@ -122,7 +122,7 @@ def main() -> None:
     elif ref.startswith("refs/pull/"):
         version_type = "pull_request"
         pull_match = tag_publish.match(
-            ref.split("/", 2)[2],
+            ref.split("/")[2],
             tag_publish.compile_re(
                 transformers.get("pull_request_to_version", cast(tag_publish.configuration.Transform, [{}])),
             ),
