@@ -100,7 +100,7 @@ def get_config() -> tag_publish.configuration.Configuration:
         with Path(".github/publish.yaml").open(encoding="utf-8") as open_file:
             yaml_ = ruamel.yaml.YAML()
             config = yaml_.load(open_file)
-            jsonschema_validator.validate(".github/publish.yaml", cast(dict[str, Any], config), schema)
+            jsonschema_validator.validate(".github/publish.yaml", cast("dict[str, Any]", config), schema)
 
     return config
 
@@ -139,7 +139,7 @@ def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTrans
     result = []
     for conf in config:
         new_conf = cast(
-            VersionTransform,
+            "VersionTransform",
             {"to": conf.get("to", tag_publish.configuration.TRANSFORM_TO_DEFAULT)},
         )
 
