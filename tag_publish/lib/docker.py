@@ -100,7 +100,7 @@ def get_versions_config() -> tuple[dict[str, dict[str, str]], bool]:
     if dpkg_versions_path.exists():
         with dpkg_versions_path.open(encoding="utf-8") as versions_file:
             return (
-                cast(dict[str, dict[str, str]], yaml.load(versions_file.read(), Loader=yaml.SafeLoader)),
+                cast("dict[str, dict[str, str]]", yaml.load(versions_file.read(), Loader=yaml.SafeLoader)),
                 True,
             )
     return {}, False
