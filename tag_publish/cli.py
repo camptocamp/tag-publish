@@ -125,7 +125,8 @@ def main() -> None:
             ref.split("/")[2],
             tag_publish.compile_re(
                 transformers.get(
-                    "pull_request_to_version", cast("tag_publish.configuration.Transform", [{}])
+                    "pull_request_to_version",
+                    cast("tag_publish.configuration.Transform", [{}]),
                 ),
             ),
         )
