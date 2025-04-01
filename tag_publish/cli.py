@@ -86,7 +86,7 @@ def main() -> None:
     security = tag_publish.get_security_md(github, local)
     transformers = config.get(
         "transformers",
-        cast(tag_publish.configuration.Transformers, tag_publish.configuration.TRANSFORMERS_DEFAULT),
+        cast("tag_publish.configuration.Transformers", tag_publish.configuration.TRANSFORMERS_DEFAULT),
     )
 
     if args.version is not None:
@@ -96,7 +96,7 @@ def main() -> None:
         tag_match = tag_publish.match(
             ref.split("/", 2)[2],
             tag_publish.compile_re(
-                transformers.get("tag_to_version", cast(tag_publish.configuration.Transform, [{}])),
+                transformers.get("tag_to_version", cast("tag_publish.configuration.Transform", [{}])),
             ),
         )
         version = tag_publish.get_value(*tag_match)
@@ -113,7 +113,7 @@ def main() -> None:
             branch_match = tag_publish.match(
                 ref.split("/", 2)[2],
                 tag_publish.compile_re(
-                    transformers.get("branch_to_version", cast(tag_publish.configuration.Transform, [{}])),
+                    transformers.get("branch_to_version", cast("tag_publish.configuration.Transform", [{}])),
                 ),
             )
             version = tag_publish.get_value(*branch_match)
@@ -124,7 +124,10 @@ def main() -> None:
         pull_match = tag_publish.match(
             ref.split("/")[2],
             tag_publish.compile_re(
-                transformers.get("pull_request_to_version", cast(tag_publish.configuration.Transform, [{}])),
+                transformers.get(
+                    "pull_request_to_version",
+                    cast("tag_publish.configuration.Transform", [{}]),
+                ),
             ),
         )
         version = tag_publish.get_value(*pull_match)
@@ -250,7 +253,7 @@ def _handle_node_publish(
                 for repo_name, repo_config in node_config.get(
                     "repository",
                     cast(
-                        dict[str, tag_publish.configuration.NodeRepository],
+                        "dict[str, tag_publish.configuration.NodeRepository]",
                         tag_publish.configuration.NODE_REPOSITORY_DEFAULT,
                     ),
                 ).items():
@@ -339,7 +342,7 @@ def _handle_docker_publish(
                     for name, conf in docker_config.get(
                         "repository",
                         cast(
-                            dict[str, tag_publish.configuration.DockerRepository],
+                            "dict[str, tag_publish.configuration.DockerRepository]",
                             tag_publish.configuration.DOCKER_REPOSITORY_DEFAULT,
                         ),
                     ).items():
