@@ -122,7 +122,7 @@ repos:
         additional_dependencies:
           - prospector-profile-utils==1.21.9 # pypi
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.6
+    rev: v0.11.7
     hooks:
       - id: ruff-format
   - repo: https://github.com/mheap/json-schema-spell-checker
