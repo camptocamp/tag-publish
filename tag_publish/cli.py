@@ -102,7 +102,7 @@ def main() -> None:
         version = tag_publish.get_value(*tag_match)
     elif ref.startswith("refs/heads/"):
         branch = ref.split("/", 2)[2]
-        if branch == github.repo.default_branch:
+        if branch == github.default_branch:
             version_type = "default_branch"
         elif branch in security.branches():
             version_type = "stabilization_branch"
@@ -432,8 +432,8 @@ def _handle_helm_publish(
     if helm_config.get("packages"):
         tag_publish.download_application("helm/chart-releaser")
 
-        owner = github.repo.owner.login
-        repo = github.repo.name
+        owner = github.owner
+        repo = github.repository
         commit_sha = (
             subprocess.run(["git", "rev-parse", "HEAD"], check=True, stdout=subprocess.PIPE)
             .stdout.strip()
@@ -494,19 +494,24 @@ def _trigger_dispatch_events(
         published = {
             "version": version,
             "version_type": version_type,
-            "repository": github.repo.full_name,
+            "repository": f"{github.owner}/{github.repository}",
             "items": published_payload,
         }
 
         if repository:
             print(f"::group::Triggering {event_type} on {repository}")
-            github_repo = github.github.get_repo(repository)
+            owner, repo = repository.split("/", 1)
         else:
             print(f"::group::Triggering {event_type}")
-            github_repo = github.repo
+            owner = github.owner
+            repo = github.repository
         print(yaml.dump(published, Dumper=yaml.SafeDumper, default_flow_style=False))
         print("::endgroup::")
-        github_repo.create_repository_dispatch(event_type, {"content": published})
+        github.github.rest.repos.create_dispatch_event(
+            owner=owner,
+            repo=repo,
+            data={"event_type": event_type, "client_payload": {"content": published}},
+        )
 
 
 if __name__ == "__main__":

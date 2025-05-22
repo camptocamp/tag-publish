@@ -1,5 +1,6 @@
 """Tag Publish main module."""
 
+import base64
 import json
 import os
 import pkgutil
@@ -10,7 +11,8 @@ from re import Match, Pattern
 from typing import Any, Optional, TypedDict, cast, overload
 
 import applications_download
-import github
+import githubkit
+import githubkit.versions.latest.models
 import jsonschema_validator
 import ruamel.yaml
 import security_md
@@ -45,9 +47,10 @@ class GH:
                 encoding="utf-8",
             ).stdout.strip()
         )
-        self.auth = github.Auth.Token(token)
-        self.github = github.Github(auth=self.auth)
-        self.repo = self.github.get_repo(
+        self.github = githubkit.GitHub(token)
+
+        # Get repository information
+        repo_name = (
             os.environ["GITHUB_REPOSITORY"]
             if "GITHUB_REPOSITORY" in os.environ
             else subprocess.run(
@@ -55,9 +58,19 @@ class GH:
                 check=True,
                 stdout=subprocess.PIPE,
                 encoding="utf-8",
-            ).stdout.strip(),
+            ).stdout.strip()
         )
-        self.default_branch = self.repo.default_branch
+
+        # Split owner and repository name
+        self.owner, self.repository = repo_name.split("/")
+
+        # Get repository data and default branch
+        repo = self.github.rest.repos.get(
+            owner=self.owner,
+            repo=self.repository,
+        ).parsed_data
+
+        self.default_branch = repo.default_branch
 
 
 def get_security_md(gh: GH, local: bool) -> security_md.Security:
@@ -78,12 +91,18 @@ def get_security_md(gh: GH, local: bool) -> security_md.Security:
         return security_md.Security("")
 
     try:
-        security_file = gh.repo.get_contents("SECURITY.md")
-        assert isinstance(security_file, github.ContentFile.ContentFile)
+        security_file = gh.github.rest.repos.get_content(
+            owner=gh.owner,
+            repo=gh.repository,
+            path="SECURITY.md",
+        ).parsed_data
         print("Using SECURITY.md file from the default branch")
-        return security_md.Security(security_file.decoded_content.decode("utf-8"))
-    except github.GithubException as exception:
-        if exception.status == 404:
+        assert isinstance(security_file, githubkit.versions.latest.models.ContentFile)
+        # Decode content from base64
+        content = base64.b64decode(security_file.content).decode("utf-8") if security_file.content else ""
+        return security_md.Security(content)
+    except githubkit.exception.RequestFailed as exception:
+        if exception.response.status_code == 404:
             print("No security file in the repository")
             return security_md.Security("")
         raise
