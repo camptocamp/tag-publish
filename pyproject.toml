@@ -6,8 +6,8 @@ target-version = "py39"
 convention = "numpy"
 
 [tool.poetry]
-version = "0.0.0"
 exclude = ["tag_publish/node_modules/**/test"]
+version = "0.0.0"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4.0"
@@ -18,9 +18,9 @@ id = "1.5.0"
 security-md = "1.0.0"
 applications-download = "1.2.0"
 jsonschema-validator-new = "0.3.2"
-PyGithub = "2.6.1"
 debian-inspector = "31.1.0"
 multi-repo-automation = "1.7.0"
+githubkit = "0.12.13"
 
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.15.2", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
@@ -70,7 +70,7 @@ description = "Tools used to publish Python packages, Docker images and Helm cha
 readme = "README.md"
 keywords = ["ci"]
 license = "FreeBSD"
-authors = [{name = "Camptocamp",email = "info@camptocamp.com"}]
+authors = [{name = "Camptocamp", email = "info@camptocamp.com"}]
 packages = [{ include = "tag_publish" }]
 include = [
     "tag_publish/py.typed",
