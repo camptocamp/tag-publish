@@ -1,2 +1,2 @@
 # https://docs.renovatebot.com/modules/datasource/#github-releases-datasource
-helm/chart-releaser: v1.7.0 # github-releases
+helm/chart-releaser: v1.8.1 # github-releases

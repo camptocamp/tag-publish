@@ -16,7 +16,7 @@ twine = "6.1.0"
 PyYAML = "6.0.2"
 id = "1.5.0"
 security-md = "1.0.0"
-applications-download = "1.2.0"
+applications-download = "1.3.4"
 jsonschema-validator-new = "0.3.2"
 debian-inspector = "31.1.0"
 multi-repo-automation = "1.7.0"
@@ -26,8 +26,8 @@ githubkit = "0.12.13"
 prospector = { version = "1.17.1", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
 prospector-profile-duplicated = "1.10.5"
 prospector-profile-utils = "1.22.3"
-types-requests = "2.32.0.20241016"
-types-pyyaml = "6.0.12.20241230"
+types-requests = "2.32.0.20250602"
+types-pyyaml = "6.0.12.20250516"
 
 [tool.poetry-dynamic-versioning]
 enable = true
