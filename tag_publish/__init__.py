@@ -209,13 +209,17 @@ def download_application(application_name: str, binary_filename: Optional[Path] 
     binary_full_filename = Path.home() / ".local" / "bin" / binary_filename if binary_filename else None
 
     if not binary_full_filename.exists() if binary_full_filename else True:
-        applications = applications_download.load_applications(None)
+        applications = applications_download.Applications()
+        applications.install("helm/chart-releaser")
+
         versions_data = pkgutil.get_data("tag_publish", "versions.yaml")
+
         assert versions_data is not None
         versions = yaml.safe_load(versions_data)
-        applications_download.download_applications(
-            applications,
-            {application_name: versions[application_name]},
+
+        applications.install(
+            application_name,
+            versions[application_name],
         )
 
     return binary_full_filename
