@@ -11,6 +11,11 @@ mypy:
   options:
     python-version: '3.9'
 
+bandit:
+  disable:
+    - B603 # subprocess call - check for execution of untrusted input. [See: https://bandit.readthedocs.io/en/1.8.3/plugins/b603_subprocess_without_shell_equals_true.html]
+    - B607 # Starting a process with a partial executable path [See: https://bandit.readthedocs.io/en/1.8.3/plugins/b607_start_process_with_partial_path.html]
+
 ruff:
   options:
     target-version: py39
