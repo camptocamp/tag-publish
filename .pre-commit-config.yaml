@@ -85,7 +85,7 @@ repos:
           - --builtin-schema
           - github-workflows-require-timeout
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 40.31.0
+    rev: 40.36.8
     hooks:
       - id: renovate-config-validator
   - repo: https://github.com/sirwart/ripsecrets
@@ -105,7 +105,7 @@ repos:
           - prospector-profile-duplicated==1.10.4 # pypi
           - prospector-profile-utils==1.21.9 # pypi
           - pylint[spelling]==3.3.6 # pypi
-          - ruff==0.11.11 # pypi
+          - ruff==0.11.12 # pypi
         exclude: |-
           (?x)(
             ^tests?/?
@@ -124,7 +124,7 @@ repos:
         additional_dependencies:
           - prospector-profile-utils==1.21.9 # pypi
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.11
+    rev: v0.11.12
     hooks:
       - id: ruff-format
   - repo: https://github.com/mheap/json-schema-spell-checker
@@ -142,6 +142,6 @@ repos:
           - --ignore-acronyms
           - --en-us
   - repo: https://github.com/sbrunner/python-versions-hook
-    rev: 1.1.1
+    rev: 1.1.2
     hooks:
       - id: python-versions
