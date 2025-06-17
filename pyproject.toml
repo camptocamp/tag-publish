@@ -91,6 +91,5 @@ tag-publish-new = "tag_publish.new:main"
 requires = [
     "poetry-core>=1.0.0",
     "poetry-dynamic-versioning[plugin]>=0.19.0",
-    "poetry-plugin-tweak-dependencies-version",
 ]
 build-backend = "poetry.core.masonry.api"
