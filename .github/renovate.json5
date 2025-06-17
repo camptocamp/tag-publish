@@ -14,12 +14,8 @@
   minimumReleaseAge: '7 days',
   customManagers: [
     {
-      managerFilePatterns: [
-        '/^tag_publish/versions.yaml$/',
-      ],
-      matchStrings: [
-        '(?<depName>.*): (?<currentValue>.*) # (?<datasource>.*)',
-      ],
+      managerFilePatterns: ['/^tag_publish/versions.yaml$/'],
+      matchStrings: ['(?<depName>.*): (?<currentValue>.*) # (?<datasource>.*)'],
       customType: 'regex',
     },
   ],
