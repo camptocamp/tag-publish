@@ -14,9 +14,9 @@
   minimumReleaseAge: '7 days',
   customManagers: [
     {
-      fileMatch: ['^tag_publish/versions.yaml$'],
       matchStrings: ['(?<depName>.*): (?<currentValue>.*) # (?<datasource>.*)'],
       customType: 'regex',
+      managerFilePatterns: ['/^tag_publish/versions.yaml$/'],
     },
   ],
   $schema: 'https://docs.renovatebot.com/renovate-schema.json',
