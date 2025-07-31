@@ -592,14 +592,14 @@ smmap = ">=3.0.1,<6"
 
 [[package]]
 name = "githubkit"
-version = "0.12.14"
+version = "0.12.16"
 description = "GitHub SDK for Python"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "githubkit-0.12.14-py3-none-any.whl", hash = "sha256:443845c1681040c7abec6e2a3c4378a95a0a52615eb79427ea3e4a79a99d833b"},
-    {file = "githubkit-0.12.14.tar.gz", hash = "sha256:eed0fcd2416fdc3bab998e2cbaac23eaa0c07c483d0e19a39b31d1cb08d89870"},
+    {file = "githubkit-0.12.16-py3-none-any.whl", hash = "sha256:821803c3a5b61c5873dadf435d89ae53e55dc154d852b47ce1007ebd315d1fbd"},
+    {file = "githubkit-0.12.16.tar.gz", hash = "sha256:5a5abf19cc0e1478f436fe4d421b2664107fcd07287f1df49187c6567499af06"},
 ]
 
 [package.dependencies]
@@ -2458,4 +2458,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "919c60a775efe3da536859bf4a6013d718c2225d7ec22e76c53846960e6231e8"
+content-hash = "68fc2225e68ef1adc0cec9d77caee4ac35c243e090062a6b436236ac0b30c0c4"
