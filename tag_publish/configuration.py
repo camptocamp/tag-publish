@@ -7,14 +7,14 @@ from typing import Any, TypedDict
 
 
 class Configuration(TypedDict, total=False):
-    """
+    r"""
     Tag publish configuration.
 
     Tag Publish configuration file (.github/publish.yaml)
     """
 
     transformers: "Transformers"
-    """
+    r"""
     Transformers.
 
     The version transform configurations.
@@ -25,35 +25,35 @@ class Configuration(TypedDict, total=False):
     """
 
     docker: "Docker"
-    """
+    r"""
     Docker.
 
     The configuration used to publish on Docker
     """
 
     pypi: "Pypi"
-    """
+    r"""
     pypi.
 
     Configuration to publish on pypi
     """
 
     node: "Node"
-    """
+    r"""
     node.
 
     Configuration to publish on node
     """
 
     helm: "Helm"
-    """
+    r"""
     helm.
 
     Configuration to publish Helm charts on GitHub release
     """
 
     dispatch: list["DispatchConfig"]
-    """
+    r"""
     Dispatch.
 
     default:
@@ -63,57 +63,57 @@ class Configuration(TypedDict, total=False):
 
 
 DISPATCH_CONFIG_DEFAULT: dict[str, Any] = {}
-""" Default value of the field path 'Dispatch item' """
+r""" Default value of the field path 'Dispatch item' """
 
 
 
 DISPATCH_DEFAULT: list[Any] = []
-""" Default value of the field path 'Tag publish configuration dispatch' """
+r""" Default value of the field path 'Tag publish configuration dispatch' """
 
 
 
 DISPATCH_EVENT_TYPE_DEFAULT = 'published'
-""" Default value of the field path 'dispatch config event_type' """
+r""" Default value of the field path 'dispatch config event_type' """
 
 
 
 DISPATCH_REPOSITORY_DEFAULT = 'camptocamp/argocd-gs-gmf-apps'
-""" Default value of the field path 'dispatch config repository' """
+r""" Default value of the field path 'dispatch config repository' """
 
 
 
 DOCKER_AUTO_LOGIN_DEFAULT = True
-""" Default value of the field path 'Docker github_oidc_login' """
+r""" Default value of the field path 'Docker github_oidc_login' """
 
 
 
 DOCKER_IMAGE_GROUP_DEFAULT = 'default'
-""" Default value of the field path 'Docker image group' """
+r""" Default value of the field path 'Docker image group' """
 
 
 
 DOCKER_IMAGE_TAGS_DEFAULT = ['{version}']
-""" Default value of the field path 'Docker image tags' """
+r""" Default value of the field path 'Docker image tags' """
 
 
 
 DOCKER_LATEST_DEFAULT = True
-""" Default value of the field path 'Docker latest' """
+r""" Default value of the field path 'Docker latest' """
 
 
 
 DOCKER_REPOSITORY_DEFAULT = {'github': {'host': 'ghcr.io', 'versions_type': ['tag', 'default_branch', 'stabilization_branch', 'rebuild']}}
-""" Default value of the field path 'Docker repository' """
+r""" Default value of the field path 'Docker repository' """
 
 
 
 DOCKER_REPOSITORY_VERSIONS_DEFAULT = ['tag', 'default_branch', 'stabilization_branch', 'rebuild', 'feature_branch', 'pull_request']
-""" Default value of the field path 'Docker repository versions_type' """
+r""" Default value of the field path 'Docker repository versions_type' """
 
 
 
 class DispatchConfig(TypedDict, total=False):
-    """
+    r"""
     dispatch config.
 
     Send a dispatch event to an other repository
@@ -123,7 +123,7 @@ class DispatchConfig(TypedDict, total=False):
     """
 
     repository: str
-    """
+    r"""
     Dispatch repository.
 
     The repository name to be triggered
@@ -132,7 +132,7 @@ class DispatchConfig(TypedDict, total=False):
     """
 
     event_type: str
-    """
+    r"""
     Dispatch event type.
 
     The event type to be triggered
@@ -143,14 +143,14 @@ class DispatchConfig(TypedDict, total=False):
 
 
 class Docker(TypedDict, total=False):
-    """
+    r"""
     Docker.
 
     The configuration used to publish on Docker
     """
 
     latest: bool
-    """
+    r"""
     Docker latest.
 
     Publish the latest version on tag latest
@@ -159,10 +159,10 @@ class Docker(TypedDict, total=False):
     """
 
     images: list["DockerImage"]
-    """ List of images to be published """
+    r""" List of images to be published """
 
     repository: dict[str, "DockerRepository"]
-    """
+    r"""
     Docker repository.
 
     The repository where we should publish the images
@@ -178,7 +178,7 @@ class Docker(TypedDict, total=False):
     """
 
     github_oidc_login: bool
-    """
+    r"""
     Docker auto login.
 
     Auto login to the GitHub Docker registry
@@ -189,10 +189,10 @@ class Docker(TypedDict, total=False):
 
 
 class DockerImage(TypedDict, total=False):
-    """ Docker image. """
+    r""" Docker image. """
 
     group: str
-    """
+    r"""
     Docker image group.
 
     The image is in the group, should be used with the --group option of tag-publish script
@@ -201,10 +201,10 @@ class DockerImage(TypedDict, total=False):
     """
 
     name: str
-    """ The image name """
+    r""" The image name """
 
     tags: list[str]
-    """
+    r"""
     docker image tags.
 
     The tag name, will be formatted with the version=<the version>, the image with version=latest should be present when we call the tag-publish script
@@ -216,13 +216,13 @@ class DockerImage(TypedDict, total=False):
 
 
 class DockerRepository(TypedDict, total=False):
-    """ Docker repository. """
+    r""" Docker repository. """
 
     host: str
-    """ The host of the repository URL """
+    r""" The host of the repository URL """
 
     versions_type: list[str]
-    """
+    r"""
     Docker repository versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
@@ -239,32 +239,32 @@ class DockerRepository(TypedDict, total=False):
 
 
 HELM_PACKAGE_FOLDER_DEFAULT = '.'
-""" Default value of the field path 'helm package folder' """
+r""" Default value of the field path 'helm package folder' """
 
 
 
 HELM_PACKAGE_GROUP_DEFAULT = 'default'
-""" Default value of the field path 'helm package group' """
+r""" Default value of the field path 'helm package group' """
 
 
 
 HELM_VERSIONS_DEFAULT = ['tag']
-""" Default value of the field path 'helm versions_type' """
+r""" Default value of the field path 'helm versions_type' """
 
 
 
 class Helm(TypedDict, total=False):
-    """
+    r"""
     helm.
 
     Configuration to publish Helm charts on GitHub release
     """
 
     packages: list["HelmPackage"]
-    """ The configuration of packages that will be published """
+    r""" The configuration of packages that will be published """
 
     versions_type: list[str]
-    """
+    r"""
     helm versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
@@ -276,14 +276,14 @@ class Helm(TypedDict, total=False):
 
 
 class HelmPackage(TypedDict, total=False):
-    """
+    r"""
     helm package.
 
     The configuration of package that will be published
     """
 
     group: str
-    """
+    r"""
     helm package group.
 
     The image is in the group, should be used with the --group option of tag-publish script
@@ -292,7 +292,7 @@ class HelmPackage(TypedDict, total=False):
     """
 
     folder: str
-    """
+    r"""
     helm package folder.
 
     The folder of the pypi package
@@ -303,42 +303,42 @@ class HelmPackage(TypedDict, total=False):
 
 
 NODE_ARGS_DEFAULT = ['--provenance', '--access=public']
-""" Default value of the field path 'node args' """
+r""" Default value of the field path 'node args' """
 
 
 
 NODE_PACKAGE_FOLDER_DEFAULT = '.'
-""" Default value of the field path 'node package folder' """
+r""" Default value of the field path 'node package folder' """
 
 
 
 NODE_PACKAGE_GROUP_DEFAULT = 'default'
-""" Default value of the field path 'node package group' """
+r""" Default value of the field path 'node package group' """
 
 
 
 NODE_REPOSITORY_DEFAULT = {'github': {'host': 'npm.pkg.github.com'}}
-""" Default value of the field path 'node repository' """
+r""" Default value of the field path 'node repository' """
 
 
 
 NODE_VERSIONS_DEFAULT = ['tag']
-""" Default value of the field path 'node versions_type' """
+r""" Default value of the field path 'node versions_type' """
 
 
 
 class Node(TypedDict, total=False):
-    """
+    r"""
     node.
 
     Configuration to publish on node
     """
 
     packages: list["NodePackage"]
-    """ The configuration of packages that will be published """
+    r""" The configuration of packages that will be published """
 
     versions_type: list[str]
-    """
+    r"""
     node versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
@@ -348,7 +348,7 @@ class Node(TypedDict, total=False):
     """
 
     repository: dict[str, "NodeRepository"]
-    """
+    r"""
     Node repository.
 
     The packages repository where we should publish the packages
@@ -359,7 +359,7 @@ class Node(TypedDict, total=False):
     """
 
     args: list[str]
-    """
+    r"""
     Node args.
 
     The arguments to pass to the publish command
@@ -372,14 +372,14 @@ class Node(TypedDict, total=False):
 
 
 class NodePackage(TypedDict, total=False):
-    """
+    r"""
     node package.
 
     The configuration of package that will be published
     """
 
     group: str
-    """
+    r"""
     node package group.
 
     The image is in the group, should be used with the --group option of tag-publish script
@@ -388,7 +388,7 @@ class NodePackage(TypedDict, total=False):
     """
 
     folder: str
-    """
+    r"""
     node package folder.
 
     The folder of the node package
@@ -399,40 +399,40 @@ class NodePackage(TypedDict, total=False):
 
 
 class NodeRepository(TypedDict, total=False):
-    """ Node repository. """
+    r""" Node repository. """
 
     host: str
-    """ The host of the repository URL """
+    r""" The host of the repository URL """
 
 
 
 PIP_PACKAGE_GROUP_DEFAULT = 'default'
-""" Default value of the field path 'pypi package group' """
+r""" Default value of the field path 'pypi package group' """
 
 
 
 PYPI_PACKAGE_FOLDER_DEFAULT = '.'
-""" Default value of the field path 'pypi package folder' """
+r""" Default value of the field path 'pypi package folder' """
 
 
 
 PYPI_VERSIONS_DEFAULT = ['tag']
-""" Default value of the field path 'pypi versions_type' """
+r""" Default value of the field path 'pypi versions_type' """
 
 
 
 class Pypi(TypedDict, total=False):
-    """
+    r"""
     pypi.
 
     Configuration to publish on pypi
     """
 
     packages: list["PypiPackage"]
-    """ The configuration of packages that will be published """
+    r""" The configuration of packages that will be published """
 
     versions_type: list[str]
-    """
+    r"""
     pypi versions.
 
     The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script
@@ -444,14 +444,14 @@ class Pypi(TypedDict, total=False):
 
 
 class PypiPackage(TypedDict, total=False):
-    """
+    r"""
     pypi package.
 
     The configuration of package that will be published
     """
 
     group: str
-    """
+    r"""
     pip package group.
 
     The image is in the group, should be used with the --group option of tag-publish script
@@ -460,7 +460,7 @@ class PypiPackage(TypedDict, total=False):
     """
 
     folder: str
-    """
+    r"""
     pypi package folder.
 
     The folder of the pypi package
@@ -469,32 +469,32 @@ class PypiPackage(TypedDict, total=False):
     """
 
     build_command: list[str]
-    """ The command used to do the build """
+    r""" The command used to do the build """
 
 
 
 TRANSFORMERS_DEFAULT = {'pull_request_to_version': [{'to': 'pr-\\1'}]}
-""" Default value of the field path 'Tag publish configuration transformers' """
+r""" Default value of the field path 'Tag publish configuration transformers' """
 
 
 
 TRANSFORM_DEFAULT: list[Any] = []
-""" Default value of the field path 'transform' """
+r""" Default value of the field path 'transform' """
 
 
 
 TRANSFORM_FROM_DEFAULT = '(.+)'
-""" Default value of the field path 'Version transform from_re' """
+r""" Default value of the field path 'Version transform from_re' """
 
 
 
 TRANSFORM_TO_DEFAULT = '\\1'
-""" Default value of the field path 'Version transform to' """
+r""" Default value of the field path 'Version transform to' """
 
 
 
 Transform = list["VersionTransform"]
-"""
+r"""
 transform.
 
 A version transformer definition
@@ -506,7 +506,7 @@ default:
 
 
 class Transformers(TypedDict, total=False):
-    """
+    r"""
     Transformers.
 
     The version transform configurations.
@@ -517,7 +517,7 @@ class Transformers(TypedDict, total=False):
     """
 
     branch_to_version: "Transform"
-    """
+    r"""
     transform.
 
     A version transformer definition
@@ -527,7 +527,7 @@ class Transformers(TypedDict, total=False):
     """
 
     tag_to_version: "Transform"
-    """
+    r"""
     transform.
 
     A version transformer definition
@@ -537,7 +537,7 @@ class Transformers(TypedDict, total=False):
     """
 
     pull_request_to_version: "Transform"
-    """
+    r"""
     transform.
 
     A version transformer definition
@@ -549,10 +549,10 @@ class Transformers(TypedDict, total=False):
 
 
 class VersionTransform(TypedDict, total=False):
-    """ Version transform. """
+    r""" Version transform. """
 
     from_re: str
-    """
+    r"""
     transform from.
 
     The from regular expression
@@ -561,7 +561,7 @@ class VersionTransform(TypedDict, total=False):
     """
 
     to: str
-    """
+    r"""
     transform to.
 
     The expand regular expression: https://docs.python.org/3/library/re.html#re.Match.expand
