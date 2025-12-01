@@ -9,7 +9,7 @@ ignore-paths:
 
 mypy:
   options:
-    python-version: '3.9'
+    python-version: '3.10'
 
 bandit:
   disable:
@@ -18,7 +18,7 @@ bandit:
 
 ruff:
   options:
-    target-version: py39
+    target-version: py310
   disable:
     - S607 # Starting a process with a partial executable path [See: https://docs.astral.sh/ruff/rules/start-process-with-partial-path]
     - S603 # `subprocess` call: check for execution of untrusted input [See: https://docs.astral.sh/ruff/rules/subprocess-without-shell-equals-true]

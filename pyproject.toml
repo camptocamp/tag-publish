@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 110
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = []
@@ -68,7 +68,6 @@ classifiers = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
@@ -87,7 +86,7 @@ include = [
     "tag_publish/py.typed",
     "tag_publish/*.json",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["requests<3,>=2", "twine<7,>=6", "PyYAML<7,>=6", "id<2,>=1", "security-md<2,>=1", "applications-download<2,>=1", "jsonschema-validator-new<1,>=0", "debian-inspector<32,>=31", "multi-repo-automation<2,>=1", "githubkit<1,>=0"]
 
 [project.urls]
