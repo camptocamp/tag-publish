@@ -633,14 +633,14 @@ flake8 = "*"
 
 [[package]]
 name = "githubkit"
-version = "0.13.7"
+version = "0.14.1"
 description = "GitHub SDK for Python"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "githubkit-0.13.7-py3-none-any.whl", hash = "sha256:6c35d1f7eed7010fa93144c0fb77f09c340cda8a8a2fd80fb5c3d3fad991c62a"},
-    {file = "githubkit-0.13.7.tar.gz", hash = "sha256:1c6c467bc37c076b0d47fe1d5668638754addc676fcbfc00d8cffd18594c2a0e"},
+    {file = "githubkit-0.14.1-py3-none-any.whl", hash = "sha256:e0055a287d86543ba64db65a44a828b93e21ff221bc12a77913349e4816f5195"},
+    {file = "githubkit-0.14.1.tar.gz", hash = "sha256:7f5f9463c901c44871ffe0c1ddb1f2959f8cdbe015e0ca5ba0bfcaf1858651af"},
 ]
 
 [package.dependencies]
@@ -2647,4 +2647,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "16f51152ada3fba3dcb3013f4c46e7bde201c35526437e1efcae8855e72ac9d8"
+content-hash = "5f561fd1bd43f25fac9c9befe83f49eeae9fb0ffc835cfbe9fe9c7e4e772510b"
