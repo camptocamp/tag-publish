@@ -31,13 +31,13 @@ applications-download = "1.4.0"
 jsonschema-validator-new = "0.3.2"
 debian-inspector = "31.1.1"
 multi-repo-automation = "1.7.0"
-githubkit = "0.14.1"
+githubkit = "0.14.3"
 
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.17.3", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
 prospector-profile-duplicated = "1.11.0"
 prospector-profile-utils = "1.26.5"
-types-requests = "2.32.4.20250913"
+types-requests = "2.32.4.20260107"
 types-pyyaml = "6.0.12.20250915"
 
 [tool.poetry-dynamic-versioning]
