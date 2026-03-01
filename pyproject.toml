@@ -25,13 +25,13 @@ python = ">=3.10,<4.0"
 requests = "2.32.5"
 twine = "6.2.0"
 PyYAML = "6.0.3"
-id = "1.5.0"
+id = "1.6.1"
 security-md = "1.0.0"
 applications-download = "1.4.0"
 jsonschema-validator-new = "0.3.2"
 debian-inspector = "31.1.1"
-multi-repo-automation = "1.7.0"
-githubkit = "0.14.3"
+multi-repo-automation = "1.8.0"
+githubkit = "0.14.4"
 
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.17.3", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }

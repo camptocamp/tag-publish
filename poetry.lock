@@ -628,14 +628,14 @@ flake8 = "*"
 
 [[package]]
 name = "githubkit"
-version = "0.14.3"
+version = "0.14.4"
 description = "GitHub SDK for Python"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "githubkit-0.14.3-py3-none-any.whl", hash = "sha256:d72e42cba43c826ebcfb08e4381fc9f966387404743d217a0259d84398163853"},
-    {file = "githubkit-0.14.3.tar.gz", hash = "sha256:e90bf2e19fa2bef49dfb163392b57dc081a2522bdf1f500e71d447151ffa2015"},
+    {file = "githubkit-0.14.4-py3-none-any.whl", hash = "sha256:d67b618375fd4d5cffc680b894e1b0f6fdc2b8b7d97b5a323f8b8d695d0c6718"},
+    {file = "githubkit-0.14.4.tar.gz", hash = "sha256:e977c1d29be70fa7627048ceb00eace58bf4a4e918fb10d77f0fc9610720bb73"},
 ]
 
 [package.dependencies]
@@ -739,22 +739,22 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "id"
-version = "1.5.0"
+version = "1.6.1"
 description = "A tool for generating OIDC identities"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "id-1.5.0-py3-none-any.whl", hash = "sha256:f1434e1cef91f2cbb8a4ec64663d5a23b9ed43ef44c4c957d02583d61714c658"},
-    {file = "id-1.5.0.tar.gz", hash = "sha256:292cb8a49eacbbdbce97244f47a97b4c62540169c976552e497fd57df0734c1d"},
+    {file = "id-1.6.1-py3-none-any.whl", hash = "sha256:f5ec41ed2629a508f5d0988eda142e190c9c6da971100612c4de9ad9f9b237ca"},
+    {file = "id-1.6.1.tar.gz", hash = "sha256:d0732d624fb46fd4e7bc4e5152f00214450953b9e772c182c1c22964def1a069"},
 ]
 
 [package.dependencies]
-requests = "*"
+urllib3 = ">=2,<3"
 
 [package.extras]
 dev = ["build", "bump (>=1.3.2)", "id[lint,test]"]
-lint = ["bandit", "interrogate", "mypy", "ruff (<0.8.2)", "types-requests"]
+lint = ["bandit", "interrogate", "mypy", "ruff (<0.14.15)"]
 test = ["coverage[toml]", "pretend", "pytest", "pytest-cov"]
 
 [[package]]
@@ -1259,17 +1259,18 @@ files = [
 
 [[package]]
 name = "multi-repo-automation"
-version = "1.7.0"
+version = "1.8.0"
 description = "Library for automation updates on multiple repositories."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "multi_repo_automation-1.7.0-py3-none-any.whl", hash = "sha256:f49c49bf94d4b24dfd85f37583a7b06dba2091cf43357c15a83c6c2ef268cea1"},
-    {file = "multi_repo_automation-1.7.0.tar.gz", hash = "sha256:8f88b655b859c5b474226ff3eaed78c2d24ec6f5a930bb812646876d36a533b8"},
+    {file = "multi_repo_automation-1.8.0-py3-none-any.whl", hash = "sha256:c7d4b2100a74c9f213fc3e9e1cff6862f755fc5cb7a9a3bf7ab92c4c8588bbb6"},
+    {file = "multi_repo_automation-1.8.0.tar.gz", hash = "sha256:23d95a5a68005471da3d419582fc74e23dfbb68f1d56e8fb1cfe895114cb99fb"},
 ]
 
 [package.dependencies]
+anyio = "*"
 configupdater = "*"
 identify = "*"
 json5 = "*"
@@ -1280,6 +1281,7 @@ requests = "*"
 security_md = "*"
 tomlkit = "*"
 typing-extensions = "*"
+urllib3 = "2.6.3"
 
 [[package]]
 name = "mypy"
@@ -1768,7 +1770,7 @@ colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
     {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
-    {version = ">=0.3.6", markers = "python_version >= \"3.11\""},
+    {version = ">=0.3.6", markers = "python_version == \"3.11\""},
 ]
 isort = ">=4.2.5,<5.13 || >5.13,<7"
 mccabe = ">=0.6,<0.8"
@@ -2581,4 +2583,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "18e2a266d0c51a3a9d9b91a91a2d9905230d430988e3763caebcafeb00a47004"
+content-hash = "a7e38415b73d2d5465a1c0a3902963eb93909471a5b5db2f7dc0b9c5bdd1b2e0"
