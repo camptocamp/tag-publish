@@ -1,4 +1,5 @@
 {
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
     'github>camptocamp/gs-renovate-config-preset:base.json5#1.7.0',
     'github>camptocamp/gs-renovate-config-preset:group.json5#1.7.0',
@@ -11,7 +12,6 @@
     'github>camptocamp/gs-renovate-config-preset:own.json5#1.7.0',
     'github>camptocamp/gs-renovate-config-preset:security.json5#1.7.0',
   ],
-  minimumReleaseAge: '7 days',
   customManagers: [
     {
       matchStrings: ['(?<depName>.*): (?<currentValue>.*) # (?<datasource>.*)'],
@@ -19,5 +19,4 @@
       managerFilePatterns: ['/^tag_publish/versions.yaml$/'],
     },
   ],
-  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
 }
