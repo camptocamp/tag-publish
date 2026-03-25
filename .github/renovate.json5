@@ -19,4 +19,5 @@
       managerFilePatterns: ['/^tag_publish/versions.yaml$/'],
     },
   ],
+  baseBranchPatterns: ['master', '1.1', '1.0', '0.13'],
 }
