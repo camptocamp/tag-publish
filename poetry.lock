@@ -49,14 +49,14 @@ anyio = ">3.4.0"
 
 [[package]]
 name = "applications-download"
-version = "1.4.0"
+version = "1.5.0"
 description = "Tools used to publish Python packages, Docker images and Helm charts for GitHub tag and branch"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "applications_download-1.4.0-py3-none-any.whl", hash = "sha256:752b13e1cffdb63d25b063120feff57feabedec54622a2798a68632dd684d487"},
-    {file = "applications_download-1.4.0.tar.gz", hash = "sha256:ae85d1fb69769c3c9e98c224186f33fa760cb93ea7a6a8ab1674766d0c078c49"},
+    {file = "applications_download-1.5.0-py3-none-any.whl", hash = "sha256:44c3c1990c6509c72bebeb075f8aa154b9bb1fd0722d0df46da3150949ce00b8"},
+    {file = "applications_download-1.5.0.tar.gz", hash = "sha256:73a3b365239f7c3ce760a3520eadc2d8c71d11fc5432fa1c3c0b45575875f292"},
 ]
 
 [package.dependencies]
@@ -628,14 +628,14 @@ flake8 = "*"
 
 [[package]]
 name = "githubkit"
-version = "0.14.3"
+version = "0.15.1"
 description = "GitHub SDK for Python"
 optional = false
 python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "githubkit-0.14.3-py3-none-any.whl", hash = "sha256:d72e42cba43c826ebcfb08e4381fc9f966387404743d217a0259d84398163853"},
-    {file = "githubkit-0.14.3.tar.gz", hash = "sha256:e90bf2e19fa2bef49dfb163392b57dc081a2522bdf1f500e71d447151ffa2015"},
+    {file = "githubkit-0.15.1-py3-none-any.whl", hash = "sha256:17616c8ba3764e568727883db190512c1e64eb1b147b190a29a6cb46b1581409"},
+    {file = "githubkit-0.15.1.tar.gz", hash = "sha256:e436494321bbd7abc27ad4fd3b8d82a94602bce0f9816ad01b58952ef299544c"},
 ]
 
 [package.dependencies]
@@ -739,22 +739,22 @@ zstd = ["zstandard (>=0.18.0)"]
 
 [[package]]
 name = "id"
-version = "1.5.0"
+version = "1.6.1"
 description = "A tool for generating OIDC identities"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "id-1.5.0-py3-none-any.whl", hash = "sha256:f1434e1cef91f2cbb8a4ec64663d5a23b9ed43ef44c4c957d02583d61714c658"},
-    {file = "id-1.5.0.tar.gz", hash = "sha256:292cb8a49eacbbdbce97244f47a97b4c62540169c976552e497fd57df0734c1d"},
+    {file = "id-1.6.1-py3-none-any.whl", hash = "sha256:f5ec41ed2629a508f5d0988eda142e190c9c6da971100612c4de9ad9f9b237ca"},
+    {file = "id-1.6.1.tar.gz", hash = "sha256:d0732d624fb46fd4e7bc4e5152f00214450953b9e772c182c1c22964def1a069"},
 ]
 
 [package.dependencies]
-requests = "*"
+urllib3 = ">=2,<3"
 
 [package.extras]
 dev = ["build", "bump (>=1.3.2)", "id[lint,test]"]
-lint = ["bandit", "interrogate", "mypy", "ruff (<0.8.2)", "types-requests"]
+lint = ["bandit", "interrogate", "mypy", "ruff (<0.14.15)"]
 test = ["coverage[toml]", "pretend", "pytest", "pytest-cov"]
 
 [[package]]
@@ -1259,17 +1259,18 @@ files = [
 
 [[package]]
 name = "multi-repo-automation"
-version = "1.7.0"
+version = "1.8.1"
 description = "Library for automation updates on multiple repositories."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "multi_repo_automation-1.7.0-py3-none-any.whl", hash = "sha256:f49c49bf94d4b24dfd85f37583a7b06dba2091cf43357c15a83c6c2ef268cea1"},
-    {file = "multi_repo_automation-1.7.0.tar.gz", hash = "sha256:8f88b655b859c5b474226ff3eaed78c2d24ec6f5a930bb812646876d36a533b8"},
+    {file = "multi_repo_automation-1.8.1-py3-none-any.whl", hash = "sha256:38cb36bee291a5486278621002c3e1c5c6779a7d6f0addc62c44056629f58318"},
+    {file = "multi_repo_automation-1.8.1.tar.gz", hash = "sha256:d86a284bee562a44d7bdc3eec639423c7f6ec291dfa4c931d18333e482f62689"},
 ]
 
 [package.dependencies]
+anyio = "*"
 configupdater = "*"
 identify = "*"
 json5 = "*"
@@ -1280,6 +1281,7 @@ requests = "*"
 security_md = "*"
 tomlkit = "*"
 typing-extensions = "*"
+urllib3 = "2.6.3"
 
 [[package]]
 name = "mypy"
@@ -1768,7 +1770,7 @@ colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
     {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
-    {version = ">=0.3.6", markers = "python_version >= \"3.11\""},
+    {version = ">=0.3.6", markers = "python_version == \"3.11\""},
 ]
 isort = ">=4.2.5,<5.13 || >5.13,<7"
 mccabe = ">=0.6,<0.8"
@@ -2000,25 +2002,26 @@ typing-extensions = {version = ">=4.4.0", markers = "python_version < \"3.13\""}
 
 [[package]]
 name = "requests"
-version = "2.32.5"
+version = "2.33.0"
 description = "Python HTTP for Humans."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
-    {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
+    {file = "requests-2.33.0-py3-none-any.whl", hash = "sha256:3324635456fa185245e24865e810cecec7b4caf933d7eb133dcde67d48cee69b"},
+    {file = "requests-2.33.0.tar.gz", hash = "sha256:c7ebc5e8b0f21837386ad0e1c8fe8b829fa5f544d8df3b2253bff14ef29d7652"},
 ]
 
 [package.dependencies]
-certifi = ">=2017.4.17"
+certifi = ">=2023.5.7"
 charset_normalizer = ">=2,<4"
 idna = ">=2.5,<4"
-urllib3 = ">=1.21.1,<3"
+urllib3 = ">=1.26,<3"
 
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
-use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
+test = ["PySocks (>=1.5.6,!=1.5.7)", "pytest (>=3)", "pytest-cov", "pytest-httpbin (==2.1.0)", "pytest-mock", "pytest-xdist"]
+use-chardet-on-py3 = ["chardet (>=3.0.2,<8)"]
 
 [[package]]
 name = "requests-toolbelt"
@@ -2499,14 +2502,14 @@ files = [
 
 [[package]]
 name = "types-requests"
-version = "2.32.4.20260107"
+version = "2.32.4.20260324"
 description = "Typing stubs for requests"
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "types_requests-2.32.4.20260107-py3-none-any.whl", hash = "sha256:b703fe72f8ce5b31ef031264fe9395cac8f46a04661a79f7ed31a80fb308730d"},
-    {file = "types_requests-2.32.4.20260107.tar.gz", hash = "sha256:018a11ac158f801bfa84857ddec1650750e393df8a004a8a9ae2a9bec6fcb24f"},
+    {file = "types_requests-2.32.4.20260324-py3-none-any.whl", hash = "sha256:f83ef2deb284fe99a249b8b0b0a3e4b9809e01ff456063c4df0aac7670c07ab9"},
+    {file = "types_requests-2.32.4.20260324.tar.gz", hash = "sha256:33a2a9ccb1de7d4e4da36e347622c35418f6761269014cc32857acabd5df739e"},
 ]
 
 [package.dependencies]
@@ -2581,4 +2584,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "18e2a266d0c51a3a9d9b91a91a2d9905230d430988e3763caebcafeb00a47004"
+content-hash = "74078e5fe80bc1bf8167cafc4467181d6aa0f8dfd8afb6424da925631e4b7d59"
