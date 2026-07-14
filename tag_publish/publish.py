@@ -7,7 +7,6 @@ import re
 import subprocess  # nosec
 import sys
 from pathlib import Path
-from typing import Any
 
 import ruamel
 import tomllib
