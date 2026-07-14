@@ -8,7 +8,7 @@ import re
 import subprocess  # nosec
 from pathlib import Path
 from re import Match, Pattern
-from typing import Any, Optional, TypedDict, cast, overload
+from typing import Any, TypedDict, cast, overload
 
 import applications_download
 import githubkit
@@ -124,7 +124,7 @@ def get_config() -> tag_publish.configuration.Configuration:
     return config
 
 
-def get_value(matched: Optional[Match[str]], config: Optional[VersionTransform], value: str) -> str:
+def get_value(matched: Match[str] | None, config: VersionTransform | None, value: str) -> str:
     """
     Get the final value.
 
@@ -176,7 +176,7 @@ def compile_re(config: tag_publish.configuration.Transform) -> list[VersionTrans
 def match(
     value: str,
     config: list[VersionTransform],
-) -> tuple[Optional[Match[str]], Optional[VersionTransform], str]:
+) -> tuple[Match[str] | None, VersionTransform | None, str]:
     """
     Get the matched version.
 
@@ -204,7 +204,7 @@ def download_application(application_name: str, binary_filename: Path) -> Path: 
 def download_application(application_name: str) -> None: ...
 
 
-def download_application(application_name: str, binary_filename: Optional[Path] = None) -> Optional[Path]:
+def download_application(application_name: str, binary_filename: Path | None = None) -> Path | None:
     """Download the application if necessary, with the included version."""
     binary_full_filename = Path.home() / ".local" / "bin" / binary_filename if binary_filename else None
 

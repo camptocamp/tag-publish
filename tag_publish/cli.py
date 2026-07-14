@@ -10,7 +10,7 @@ import subprocess  # nosec
 import sys
 from pathlib import Path
 from re import Match
-from typing import Optional, cast
+from typing import cast
 
 import security_md
 import yaml
@@ -22,7 +22,7 @@ import tag_publish.lib.oidc
 import tag_publish.publish
 
 
-def match(tpe: str, base_re: str) -> Optional[Match[str]]:
+def match(tpe: str, base_re: str) -> Match[str] | None:
     """
     Return the match for `GITHUB_REF` basically like: `refs/<tpe>/<base_re>`.
 
