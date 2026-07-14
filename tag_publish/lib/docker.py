@@ -84,7 +84,7 @@ def get_dpkg_packages_versions(
                             f"The package {package} has different version "
                             f"({package_version[package]} != {version})",
                         )
-                    if package not in ("base-files",):
+                    if package != "base-files":
                         package_version[package] = version
             package = value
             version = None
