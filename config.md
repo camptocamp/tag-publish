@@ -54,13 +54,17 @@ _Tag Publish configuration file (.github/publish.yaml)_
       - <a id="definitions/node/properties/repository/additionalProperties/properties/host"></a>**`host`** _(string)_: The host of the repository URL.
   - <a id="definitions/node/properties/args"></a>**`args`** _(array)_: The arguments to pass to the publish command. Default: `["--provenance", "--access=public"]`.
     - <a id="definitions/node/properties/args/items"></a>**Items** _(string)_
-- <a id="definitions/helm"></a>**`helm`** _(object)_: Configuration to publish Helm charts on GitHub release. Cannot contain additional properties.
+- <a id="definitions/helm"></a>**`helm`** _(object)_: Configuration to publish Helm charts on GitHub release and OCI registry. Cannot contain additional properties.
   - <a id="definitions/helm/properties/packages"></a>**`packages`** _(array)_: The configuration of packages that will be published.
     - <a id="definitions/helm/properties/packages/items"></a>**Items** _(object)_: The configuration of package that will be published. Cannot contain additional properties.
       - <a id="definitions/helm/properties/packages/items/properties/group"></a>**`group`** _(string)_: The image is in the group, should be used with the --group option of tag-publish script. Default: `"default"`.
       - <a id="definitions/helm/properties/packages/items/properties/folder"></a>**`folder`** _(string)_: The folder of the pypi package. Default: `"."`.
   - <a id="definitions/helm/properties/versions_type"></a>**`versions_type`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["tag"]`.
     - <a id="definitions/helm/properties/versions_type/items"></a>**Items** _(string)_
+  - <a id="definitions/helm/properties/oci"></a>**`oci`** _(object)_: The configuration for Helm chart publishing on OCI registry. Cannot contain additional properties.
+    - <a id="definitions/helm/properties/oci/properties/enabled"></a>**`enabled`** _(boolean)_: Enable publishing to an OCI registry. Default: `true`.
+    - <a id="definitions/helm/properties/oci/properties/registry"></a>**`registry`** _(string)_: The OCI registry host. Default: `"ghcr.io"`.
+    - <a id="definitions/helm/properties/oci/properties/sign"></a>**`sign`** _(boolean)_: Enable keyless signing of the chart using cosign. Default: `true`.
 - <a id="definitions/transform"></a>**`transform`** _(array)_: A version transformer definition. Default: `[]`.
   - <a id="definitions/transform/items"></a>**Items** _(object)_: Cannot contain additional properties.
     - <a id="definitions/transform/items/properties/from_re"></a>**`from_re`** _(string)_: The from regular expression. Default: `"(.+)"`.

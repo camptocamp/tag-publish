@@ -470,7 +470,16 @@ def _handle_helm_publish(
                         print(f"Publishing '{folder}' to helm, skipping (dry run)")
                     else:
                         token = os.environ["GITHUB_TOKEN"]
-                        success &= tag_publish.publish.helm(folder, version, owner, repo, commit_sha, token)
+                        oci_config = helm_config.get("oci")
+                        success &= tag_publish.publish.helm(
+                            folder,
+                            version,
+                            owner,
+                            repo,
+                            commit_sha,
+                            token,
+                            oci_config,
+                        )
                         published_payload.append({"type": "helm", "folder": folder})
                 else:
                     print(
