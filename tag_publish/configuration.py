@@ -49,7 +49,7 @@ class Configuration(TypedDict, total=False):
     r"""
     helm.
 
-    Configuration to publish Helm charts on GitHub release
+    Configuration to publish Helm charts on GitHub release and OCI registry
     """
 
     dispatch: list["DispatchConfig"]
@@ -238,6 +238,21 @@ class DockerRepository(TypedDict, total=False):
 
 
 
+HELM_OCI_ENABLED_DEFAULT = True
+r""" Default value of the field path 'helm OCI enabled' """
+
+
+
+HELM_OCI_REGISTRY_DEFAULT = 'ghcr.io'
+r""" Default value of the field path 'helm OCI registry' """
+
+
+
+HELM_OCI_SIGN_DEFAULT = True
+r""" Default value of the field path 'helm OCI sign' """
+
+
+
 HELM_PACKAGE_FOLDER_DEFAULT = '.'
 r""" Default value of the field path 'helm package folder' """
 
@@ -257,7 +272,7 @@ class Helm(TypedDict, total=False):
     r"""
     helm.
 
-    Configuration to publish Helm charts on GitHub release
+    Configuration to publish Helm charts on GitHub release and OCI registry
     """
 
     packages: list["HelmPackage"]
@@ -271,6 +286,49 @@ class Helm(TypedDict, total=False):
 
     default:
       - tag
+    """
+
+    oci: "HelmOci"
+    r"""
+    helm OCI.
+
+    The configuration for Helm chart publishing on OCI registry
+    """
+
+
+
+class HelmOci(TypedDict, total=False):
+    r"""
+    helm OCI.
+
+    The configuration for Helm chart publishing on OCI registry
+    """
+
+    enabled: bool
+    r"""
+    helm OCI enabled.
+
+    Enable publishing to an OCI registry
+
+    default: True
+    """
+
+    registry: str
+    r"""
+    helm OCI registry.
+
+    The OCI registry host
+
+    default: ghcr.io
+    """
+
+    sign: bool
+    r"""
+    helm OCI sign.
+
+    Enable keyless signing of the chart using cosign
+
+    default: True
     """
 
 

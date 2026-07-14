@@ -7,10 +7,12 @@ import re
 import subprocess  # nosec
 import sys
 from pathlib import Path
+from typing import Any
 
 import ruamel
 import tomllib
 
+import tag_publish
 import tag_publish.configuration
 
 
@@ -263,7 +265,15 @@ def docker(
     return True
 
 
-def helm(folder: str, version: str, owner: str, repo: str, commit_sha: str, token: str) -> bool:
+def helm(
+    folder: str,
+    version: str,
+    owner: str,
+    repo: str,
+    commit_sha: str,
+    token: str,
+    oci_config: tag_publish.configuration.HelmOci | None = None,
+) -> bool:
     """
     Publish to pypi.
 
@@ -274,17 +284,20 @@ def helm(folder: str, version: str, owner: str, repo: str, commit_sha: str, toke
         repo: The GitHub repository name
         commit_sha: The sha of the current commit
         token: The GitHub token
+        oci_config: The OCI registry configuration
 
     """
     print(f"::group::Publishing Helm chart from '{folder}' to GitHub release")
     sys.stdout.flush()
     sys.stderr.flush()
 
+    chart_name = ""
     try:
         yaml_ = ruamel.yaml.YAML()
         with (Path(folder) / "Chart.yaml").open(encoding="utf-8") as open_file:
             chart = yaml_.load(open_file)
         chart["version"] = version
+        chart_name = chart.get("name", "")
         with (Path(folder) / "Chart.yaml").open("w", encoding="utf-8") as open_file:
             yaml_.dump(chart, open_file)
         for index, dependency in enumerate(chart.get("dependencies", [])):
@@ -327,6 +340,39 @@ def helm(folder: str, version: str, owner: str, repo: str, commit_sha: str, toke
             check=True,
         )
         print("::endgroup::")
+
+        oci_config = oci_config or {}
+        if oci_config.get("enabled", tag_publish.configuration.HELM_OCI_ENABLED_DEFAULT):
+            registry = oci_config.get("registry", tag_publish.configuration.HELM_OCI_REGISTRY_DEFAULT)
+            oci_repository = f"{registry}/{owner}/{repo}"
+            print(f"::group::Publishing Helm chart '{folder}' to OCI registry {oci_repository}")
+
+            subprocess.run(
+                ["helm", "registry", "login", registry, f"--username={owner}", f"--password={token}"],
+                check=True,
+            )
+
+            chart_archive = f"{chart_name}-{version}.tgz"
+            if not Path(chart_archive).exists():
+                print(f"Error: chart archive {chart_archive} not found")
+                print("::endgroup::")
+                print("::error::Chart archive not found")
+                return False
+            subprocess.run(
+                ["helm", "push", chart_archive, f"oci://{oci_repository}"],
+                check=True,
+            )
+
+            if oci_config.get("sign", tag_publish.configuration.HELM_OCI_SIGN_DEFAULT):
+                print(f"Signing chart with cosign at oci://{oci_repository}:{version}")
+                tag_publish.download_application("sigstore/cosign")
+                subprocess.run(
+                    ["cosign", "sign", f"oci://{oci_repository}:{version}", "--yes"],
+                    check=True,
+                )
+
+            print("::endgroup::")
+
     except subprocess.CalledProcessError as exception:
         print(f"Error: {exception}")
         print("::endgroup::")

@@ -215,7 +215,7 @@
     },
     "helm": {
       "title": "helm",
-      "description": "Configuration to publish Helm charts on GitHub release",
+      "description": "Configuration to publish Helm charts on GitHub release and OCI registry",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -250,6 +250,32 @@
           "default": ["tag"],
           "items": {
             "type": "string"
+          }
+        },
+        "oci": {
+          "title": "helm OCI",
+          "description": "The configuration for Helm chart publishing on OCI registry",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "description": "Enable publishing to an OCI registry",
+              "title": "helm OCI enabled",
+              "default": true,
+              "type": "boolean"
+            },
+            "registry": {
+              "description": "The OCI registry host",
+              "title": "helm OCI registry",
+              "default": "ghcr.io",
+              "type": "string"
+            },
+            "sign": {
+              "description": "Enable keyless signing of the chart using cosign",
+              "title": "helm OCI sign",
+              "default": true,
+              "type": "boolean"
+            }
           }
         }
       }

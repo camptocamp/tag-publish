@@ -15,11 +15,11 @@ Set the permissions:
 
 ```yaml
 permissions:
-  # To publish Docker images on GHCR and on npm.pkg.github.com
+  # To publish Docker images on GHCR, npm packages and Helm charts on OCI registry
   packages: write
-  # To publish Python packages using OIDC
+  # To publish Python packages using OIDC and for cosign keyless signing
   id-token: write
-  # To publish Helm charts and send repository dispatch notifications
+  # To publish Helm charts (chart-releaser) and send repository dispatch notifications
   contents: write
 ```
 
@@ -278,6 +278,36 @@ git checkout --orphan gh-pages
 git reset --hard
 git commit --allow-empty -m "Initialize gh-pages branch"
 git push origin gh-pages
+```
+
+#### OCI registry publishing
+
+By default, the Helm chart is also published to an OCI registry (`ghcr.io/<owner>/<repo>`) and signed with [cosign](https://github.com/sigstore/cosign) using keyless signing.
+
+The chart is pushed to `ghcr.io/<owner>/<repo>:<version>` automatically.
+
+The required permissions are `packages: write` (for pushing to ghcr.io) and `id-token: write` (for cosign keyless signing).
+
+To customize the OCI publishing:
+
+```yaml
+helm:
+  packages:
+    - folder: charts/my-chart
+  oci:
+    enabled: true # default: true
+    registry: ghcr.io # default: ghcr.io
+    sign: true # default: true, keyless signing via cosign
+```
+
+To disable OCI publishing:
+
+```yaml
+helm:
+  packages:
+    - {}
+  oci:
+    enabled: false
 ```
 
 ## Dispatch
