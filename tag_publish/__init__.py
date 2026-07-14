@@ -8,7 +8,7 @@ import re
 import subprocess  # nosec
 from pathlib import Path
 from re import Match, Pattern
-from typing import Any, Optional, TypedDict, cast, overload
+from typing import Any, TypedDict, cast, overload
 
 import applications_download
 import githubkit
