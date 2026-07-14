@@ -2,7 +2,7 @@
 
 import subprocess  # nosec: B404
 from pathlib import Path
-from typing import Optional, cast
+from typing import cast
 
 import yaml
 from debian_inspector.version import Version
@@ -10,8 +10,8 @@ from debian_inspector.version import Version
 
 def get_dpkg_packages_versions(
     image: str,
-    default_distribution: Optional[str] = None,
-    default_release: Optional[str] = None,
+    default_distribution: str | None = None,
+    default_release: str | None = None,
 ) -> tuple[bool, dict[str, Version]]:
     """
     Get the versions of the dpkg packages installed in the image.
@@ -110,8 +110,8 @@ def get_versions_config() -> tuple[dict[str, dict[str, str]], bool]:
 def check_versions(
     versions_config: dict[str, str],
     image: str,
-    default_distribution: Optional[str] = None,
-    default_release: Optional[str] = None,
+    default_distribution: str | None = None,
+    default_release: str | None = None,
 ) -> bool:
     """
     Check if the versions are correct.

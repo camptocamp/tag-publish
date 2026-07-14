@@ -7,7 +7,6 @@ import re
 import subprocess  # nosec
 import sys
 from pathlib import Path
-from typing import Optional
 
 import ruamel
 import tomllib
@@ -175,7 +174,7 @@ def docker(
     tag_src: str,
     dst_tags: list[str],
     images_full: list[str],
-    published: Optional[list[tag_publish.PublishedPayload]] = None,
+    published: list[tag_publish.PublishedPayload] | None = None,
 ) -> bool:
     """
     Publish to a Docker registry.
