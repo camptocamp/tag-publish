@@ -98,7 +98,7 @@ repos:
     rev: v0.1.9
     hooks:
       - id: ripsecrets
-  - repo: https://github.com/PyCQA/prospector
+  - repo: https://github.com/prospector-dev/prospector
     rev: v1.17.3
     hooks:
       - id: prospector
