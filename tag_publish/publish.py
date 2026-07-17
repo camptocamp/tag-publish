@@ -351,7 +351,7 @@ def helm(
                 check=True,
             )
 
-            chart_archive = f"{chart_name}-{version}.tgz"
+            chart_archive = f".cr-release-packages/{chart_name}-{version}.tgz"
             if not Path(chart_archive).exists():
                 print(f"Error: chart archive {chart_archive} not found")
                 print("::endgroup::")
