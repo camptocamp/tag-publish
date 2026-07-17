@@ -49,14 +49,14 @@ anyio = ">3.4.0"
 
 [[package]]
 name = "applications-download"
-version = "1.4.0"
+version = "1.7.0"
 description = "Tools used to publish Python packages, Docker images and Helm charts for GitHub tag and branch"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "applications_download-1.4.0-py3-none-any.whl", hash = "sha256:752b13e1cffdb63d25b063120feff57feabedec54622a2798a68632dd684d487"},
-    {file = "applications_download-1.4.0.tar.gz", hash = "sha256:ae85d1fb69769c3c9e98c224186f33fa760cb93ea7a6a8ab1674766d0c078c49"},
+    {file = "applications_download-1.7.0-py3-none-any.whl", hash = "sha256:abafb58aab402442e0625dfdeae34a8eca228f338293b3dde6db89ce7df547b7"},
+    {file = "applications_download-1.7.0.tar.gz", hash = "sha256:cb3b8dd4efa9b102c8aed0dfee28fc01964803762b600dd6de05e512a8393620"},
 ]
 
 [package.dependencies]
@@ -2813,4 +2813,4 @@ type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<4.0"
-content-hash = "be23145521cd94eeb0c68899b7cc13abb587cdd46972f5ce9e43f3f5f7a2aef3"
+content-hash = "621f0973400c278e3a4dad4c317e4d5dca59d49ccd924ecdee560db0d8ac7d42"
