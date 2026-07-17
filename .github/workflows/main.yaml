@@ -31,16 +31,16 @@ jobs:
       success: ${{ steps.success.outputs.success }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.13'
       - run: python3 -m pip install $(grep pre-commit== requirements.txt)
 
-      - uses: actions/cache@v6
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/pre-commit
           key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
@@ -48,7 +48,7 @@ jobs:
       - run: pre-commit run --all-files --color=always
       - run: git diff --exit-code --patch > /tmp/pre-commit.patch; git diff --color; git reset --hard || true
         if: failure()
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Apply pre-commit fix.patch
           path: /tmp/pre-commit.patch
@@ -68,11 +68,11 @@ jobs:
       success: ${{ steps.success.outputs.success }}
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: '3.13'
       - run: python3 -m pip install --requirement=.github/requirements.txt
@@ -100,7 +100,7 @@ jobs:
 
       - run: git diff --exit-code --patch > /tmp/dpkg-versions.patch || true
         if: failure()
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Update dpkg versions list.patch
           path: /tmp/dpkg-versions.patch
