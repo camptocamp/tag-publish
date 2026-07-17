@@ -1,49 +1,3 @@
-
-[build-system]
-requires = [
-    "poetry-core>=1.0.0",
-    "poetry-dynamic-versioning[plugin]>=0.19.0",
-]
-build-backend = "poetry.core.masonry.api"
-
-[project]
-classifiers = [
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Console',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
-    'Operating System :: OS Independent',
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
-    'Programming Language :: Python :: 3.12',
-    'Programming Language :: Python :: 3.13',
-    'Typing :: Typed',
-]
-dynamic = ["version"]
-name = "tag-publish"
-description = "Tools used to publish Python packages, Docker images and Helm charts for GitHub tag and branch"
-readme = "README.md"
-keywords = ["ci"]
-license = "FreeBSD"
-authors = [{name = "Camptocamp", email = "info@camptocamp.com"}]
-packages = [{ include = "tag_publish" }]
-include = [
-    "tag_publish/py.typed",
-    "tag_publish/*.json",
-]
-requires-python = ">=3.10"
-dependencies = ["requests<3,>=2", "twine<7,>=6", "PyYAML<7,>=6", "id<2,>=1", "security-md<2,>=1", "applications-download<2,>=1", "jsonschema-validator-new<1,>=0", "debian-inspector<32,>=31", "multi-repo-automation<2,>=1", "githubkit<1,>=0"]
-
-[project.urls]
-repository = "https://github.com/camptocamp/tag-publish"
-"Bug Tracker" = "https://github.com/camptocamp/tag-publish/issues"
-
-[project.scripts]
-tag-publish = "tag_publish.cli:main"
-tag-publish-new = "tag_publish.new:main"
-
 [tool.ruff]
 line-length = 110
 target-version = "py310"
@@ -104,3 +58,48 @@ format-jinja = """
 
 [tool.poetry-plugin-tweak-dependencies-version]
 default = "major"
+
+[project]
+classifiers = [
+    'Development Status :: 5 - Production/Stable',
+    'Environment :: Console',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved :: MIT License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3.13',
+    'Typing :: Typed',
+]
+dynamic = ["version"]
+name = "tag-publish"
+description = "Tools used to publish Python packages, Docker images and Helm charts for GitHub tag and branch"
+readme = "README.md"
+keywords = ["ci"]
+license = "FreeBSD"
+authors = [{name = "Camptocamp", email = "info@camptocamp.com"}]
+packages = [{ include = "tag_publish" }]
+include = [
+    "tag_publish/py.typed",
+    "tag_publish/*.json",
+]
+requires-python = ">=3.10"
+dependencies = ["requests<3,>=2", "twine<7,>=6", "PyYAML<7,>=6", "id<2,>=1", "security-md<2,>=1", "applications-download<2,>=1", "jsonschema-validator-new<1,>=0", "debian-inspector<32,>=31", "multi-repo-automation<2,>=1", "githubkit<1,>=0"]
+
+[project.urls]
+repository = "https://github.com/camptocamp/tag-publish"
+"Bug Tracker" = "https://github.com/camptocamp/tag-publish/issues"
+
+[project.scripts]
+tag-publish = "tag_publish.cli:main"
+tag-publish-new = "tag_publish.new:main"
+
+[build-system]
+requires = [
+    "poetry-core>=1.0.0",
+    "poetry-dynamic-versioning[plugin]>=0.19.0",
+]
+build-backend = "poetry.core.masonry.api"
