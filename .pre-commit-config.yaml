@@ -66,7 +66,7 @@ repos:
         args:
           - --test=utils:tests
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         exclude: |-
@@ -91,7 +91,7 @@ repos:
           - --builtin-schema
           - github-workflows-require-timeout
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 43.263.3
+    rev: 43.288.0
     hooks:
       - id: renovate-config-validator
   - repo: https://github.com/sirwart/ripsecrets
@@ -112,7 +112,7 @@ repos:
           - prospector-profile-utils==1.27.0 # pypi
           - pylint[spelling]==4.0.6 # pypi
           - mypy==2.3.0 # pypi
-          - ruff==0.15.21 # pypi
+          - ruff==0.16.1 # pypi
         exclude: |-
           (?x)(
             ^tests?/?
@@ -131,9 +131,9 @@ repos:
         additional_dependencies:
           - prospector-profile-utils==1.27.0 # pypi
           - mypy==2.3.0 # pypi
-          - ruff==0.15.21 # pypi
+          - ruff==0.16.1 # pypi
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.21
+    rev: v0.16.1
     hooks:
       - id: ruff-format
   - repo: https://github.com/mheap/json-schema-spell-checker
