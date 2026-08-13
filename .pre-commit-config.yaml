@@ -132,6 +132,7 @@ repos:
           - prospector-profile-utils==1.27.0 # pypi
           - mypy==2.3.0 # pypi
           - ruff==0.15.21 # pypi
+          - pylint[spelling]==4.0.6 # pypi
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.21
     hooks:
