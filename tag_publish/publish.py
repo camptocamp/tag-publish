@@ -363,10 +363,10 @@ def helm(
             )
 
             if oci_config.get("sign", tag_publish.configuration.HELM_OCI_SIGN_DEFAULT):
-                print(f"Signing chart with cosign at oci://{oci_repository}:{version}")
+                print(f"Signing chart with cosign at oci://{oci_repository}/{chart_name}:{version}")
                 tag_publish.download_application("sigstore/cosign")
                 subprocess.run(
-                    ["cosign", "sign", f"{oci_repository}:{version}", "--yes"],
+                    ["cosign", "sign", f"{oci_repository}/{chart_name}:{version}", "--yes"],
                     check=True,
                 )
 
