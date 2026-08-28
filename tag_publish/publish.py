@@ -366,7 +366,7 @@ def helm(
                 print(f"Signing chart with cosign at oci://{oci_repository}:{version}")
                 tag_publish.download_application("sigstore/cosign")
                 subprocess.run(
-                    ["cosign", "sign", f"oci://{oci_repository}:{version}", "--yes"],
+                    ["cosign", "sign", f"{oci_repository}:{version}", "--yes"],
                     check=True,
                 )
 
