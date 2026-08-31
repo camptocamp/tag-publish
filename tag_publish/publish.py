@@ -319,6 +319,7 @@ def helm(
                 f"--git-repo={repo}",
                 f"--commit={commit_sha}",
                 "--release-name-template={{ .Version }}",
+                "--skip-existing",
                 f"--token={token}",
             ],
             check=True,
