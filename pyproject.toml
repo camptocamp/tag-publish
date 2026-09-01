@@ -38,7 +38,7 @@ prospector = { version = "1.19.1", extras = ["with_bandit", "with_mypy", "with_p
 prospector-profile-duplicated = "1.12.0"
 prospector-profile-utils = "1.27.0"
 types-requests = "2.33.0.20260712"
-types-pyyaml = "6.0.12.20260724"
+types-pyyaml = "6.0.12.20260815"
 ruff = "0.15.21"
 pylint = "4.0.7"
 
@@ -101,7 +101,7 @@ tag-publish-new = "tag_publish.new:main"
 
 [build-system]
 requires = [
-    "poetry-core==2.4.0",
+    "poetry-core==2.4.1",
     "poetry-dynamic-versioning[plugin]==1.10.0",
 ]
 build-backend = "poetry.core.masonry.api"
