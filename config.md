@@ -62,9 +62,9 @@ _Tag Publish configuration file (.github/publish.yaml)_
   - <a id="definitions/helm/properties/versions_type"></a>**`versions_type`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["tag"]`.
     - <a id="definitions/helm/properties/versions_type/items"></a>**Items** _(string)_
   - <a id="definitions/helm/properties/oci"></a>**`oci`** _(object)_: The configuration for Helm chart publishing on OCI registry. Cannot contain additional properties.
-    - <a id="definitions/helm/properties/oci/properties/enabled"></a>**`enabled`** _(boolean)_: Enable publishing to an OCI registry. Default: `true`.
+    - <a id="definitions/helm/properties/oci/properties/enabled"></a>**`enabled`** _(boolean)_: Enable publishing to an OCI registry, requires the workflow permission `packages: write`. Default: `true`.
     - <a id="definitions/helm/properties/oci/properties/registry"></a>**`registry`** _(string)_: The OCI registry host. Default: `"ghcr.io"`.
-    - <a id="definitions/helm/properties/oci/properties/sign"></a>**`sign`** _(boolean)_: Enable keyless signing of the chart using cosign. Default: `true`.
+    - <a id="definitions/helm/properties/oci/properties/sign"></a>**`sign`** _(boolean)_: Enable keyless signing of the chart using cosign, requires the workflow permission `id-token: write`. Default: `true`.
 - <a id="definitions/transform"></a>**`transform`** _(array)_: A version transformer definition. Default: `[]`.
   - <a id="definitions/transform/items"></a>**Items** _(object)_: Cannot contain additional properties.
     - <a id="definitions/transform/items/properties/from_re"></a>**`from_re`** _(string)_: The from regular expression. Default: `"(.+)"`.

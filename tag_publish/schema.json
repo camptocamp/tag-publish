@@ -259,7 +259,7 @@
           "additionalProperties": false,
           "properties": {
             "enabled": {
-              "description": "Enable publishing to an OCI registry",
+              "description": "Enable publishing to an OCI registry, requires the workflow permission `packages: write`",
               "title": "helm OCI enabled",
               "default": true,
               "type": "boolean"
@@ -271,7 +271,7 @@
               "type": "string"
             },
             "sign": {
-              "description": "Enable keyless signing of the chart using cosign",
+              "description": "Enable keyless signing of the chart using cosign, requires the workflow permission `id-token: write`",
               "title": "helm OCI sign",
               "default": true,
               "type": "boolean"

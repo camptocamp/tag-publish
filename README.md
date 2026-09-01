@@ -284,9 +284,14 @@ git push origin gh-pages
 
 By default, the Helm chart is also published to an OCI registry (`ghcr.io/<owner>/<repo>`) and signed with [cosign](https://github.com/sigstore/cosign) using keyless signing.
 
-The chart is pushed to `ghcr.io/<owner>/<repo>:<version>` automatically.
+The chart is pushed to `ghcr.io/<owner>/<repo>/<chart-name>:<version>`, e.g.
+`ghcr.io/camptocamp/tag-publish/tag-publish:1.2.2`.
 
 The required permissions are `packages: write` (for pushing to ghcr.io) and `id-token: write` (for cosign keyless signing).
+
+If the first push fails with `403: denied: installation not allowed to Create organization package`,
+the `packages: write` permission is missing in the workflow, and the package must be created by a first
+push or manually before the `GITHUB_TOKEN` is allowed to write on it.
 
 To customize the OCI publishing:
 
