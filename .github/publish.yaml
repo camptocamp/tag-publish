@@ -10,9 +10,6 @@ pypi:
 docker:
   images:
     - name: camptocamp/tag-publish
-helm:
-  packages:
-    - folder: tests
 node:
   packages:
     - folder: tests
