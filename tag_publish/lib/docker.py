@@ -58,10 +58,6 @@ def get_dpkg_packages_versions(
     prefix = f"{distribution_final}_{release_final}/"
     print(f"Found distribution '{distribution_final}', release '{release_final}'.")
 
-    if distribution_final == "ubuntu" and release_final == "18_04":
-        print("Warning: Ubuntu 18.04 is not supported")
-        return False, {}
-
     package_version: dict[str, Version] = {}
     packages_status_process = subprocess.run(
         ["docker", "run", "--rm", "--entrypoint=", image, "dpkg", "--status"],
