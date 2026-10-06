@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 110
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = []
@@ -21,7 +21,7 @@ exclude = ["tag_publish/node_modules/**/test"]
 version = "0.0.0"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.11,<4.0"
 PyYAML = "6.0.3"
 security-md = "1.0.0"
 githubkit = "0.14.3"
@@ -78,7 +78,6 @@ classifiers = [
     'Operating System :: OS Independent',
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
@@ -96,7 +95,7 @@ include = [
     "tag_publish/py.typed",
     "tag_publish/*.json",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = ["PyYAML<7,>=6", "security-md<2,>=1", "githubkit<1,>=0"]
 
 [project.optional-dependencies]
