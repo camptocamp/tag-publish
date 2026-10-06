@@ -14,7 +14,7 @@ permissions:
   packages: write
   # To publish Python packages
   id-token: write
-  # To publish Helm charts
+  # To send the repository dispatch events
   contents: write
 
 env:

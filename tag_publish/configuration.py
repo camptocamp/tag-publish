@@ -3,7 +3,7 @@ Automatically generated file from a JSON schema.
 """
 
 
-from typing import Any, TypedDict
+from typing import Any, Literal, TypedDict
 
 
 class Configuration(TypedDict, total=False):
@@ -263,6 +263,11 @@ r""" Default value of the field path 'helm package group' """
 
 
 
+HELM_TYPES_DEFAULT = ['oci', 'cr']
+r""" Default value of the field path 'helm types' """
+
+
+
 HELM_VERSIONS_DEFAULT = ['tag']
 r""" Default value of the field path 'helm versions_type' """
 
@@ -286,6 +291,17 @@ class Helm(TypedDict, total=False):
 
     default:
       - tag
+    """
+
+    types: list["_HelmTypesItem"]
+    r"""
+    helm types.
+
+    The destinations the Helm charts are published to, `cr` for the GitHub Releases and their index branch, `oci` for an OCI registry
+
+    default:
+      - oci
+      - cr
     """
 
     oci: "HelmOci"
@@ -626,4 +642,12 @@ class VersionTransform(TypedDict, total=False):
 
     default: \1
     """
+
+
+
+_HelmTypesItem = Literal['oci'] | Literal['cr']
+_HELMTYPESITEM_OCI: Literal['oci'] = "oci"
+r"""The values for the '_HelmTypesItem' enum"""
+_HELMTYPESITEM_CR: Literal['cr'] = "cr"
+r"""The values for the '_HelmTypesItem' enum"""
 

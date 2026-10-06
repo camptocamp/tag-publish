@@ -61,6 +61,8 @@ _Tag Publish configuration file (.github/publish.yaml)_
       - <a id="definitions/helm/properties/packages/items/properties/folder"></a>**`folder`** _(string)_: The folder of the pypi package. Default: `"."`.
   - <a id="definitions/helm/properties/versions_type"></a>**`versions_type`** _(array)_: The kind or version that should be published, tag, branch or value of the --version argument of the tag-publish script. Default: `["tag"]`.
     - <a id="definitions/helm/properties/versions_type/items"></a>**Items** _(string)_
+  - <a id="definitions/helm/properties/types"></a>**`types`** _(array)_: The destinations the Helm charts are published to, `cr` for the GitHub Releases and their index branch, `oci` for an OCI registry. Default: `["oci", "cr"]`.
+    - <a id="definitions/helm/properties/types/items"></a>**Items** _(string)_: Must be one of: "oci" or "cr".
   - <a id="definitions/helm/properties/oci"></a>**`oci`** _(object)_: The configuration for Helm chart publishing on OCI registry. Cannot contain additional properties.
     - <a id="definitions/helm/properties/oci/properties/enabled"></a>**`enabled`** _(boolean)_: Enable publishing to an OCI registry. Default: `true`.
     - <a id="definitions/helm/properties/oci/properties/registry"></a>**`registry`** _(string)_: The OCI registry host. Default: `"ghcr.io"`.
