@@ -22,16 +22,24 @@ version = "0.0.0"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-requests = "2.33.0"
-twine = "6.2.0"
 PyYAML = "6.0.3"
-id = "1.5.0"
 security-md = "1.0.0"
-applications-download = "1.7.0"
-jsonschema-validator-new = "0.3.2"
-debian-inspector = "31.1.1"
-multi-repo-automation = "1.7.0"
 githubkit = "0.14.3"
+requests = { version = "2.33.0", optional = true }
+twine = { version = "6.2.0", optional = true }
+id = { version = "1.5.0", optional = true }
+applications-download = { version = "1.7.0", optional = true }
+jsonschema-validator-new = { version = "0.3.2", optional = true }
+debian-inspector = { version = "31.1.1", optional = true }
+multi-repo-automation = { version = "1.7.0", optional = true }
+ruamel-yaml = { version = "0.19.1", optional = true }
+
+[tool.poetry.extras]
+pypi = ["requests", "twine", "id"]
+docker = ["debian-inspector"]
+helm = ["applications-download"]
+new = ["multi-repo-automation", "ruamel-yaml"]
+validation = ["jsonschema-validator-new"]
 
 [tool.poetry.group.dev.dependencies]
 prospector = { version = "1.19.1", extras = ["with_bandit", "with_mypy", "with_pyroma", "with_ruff"] }
@@ -89,7 +97,14 @@ include = [
     "tag_publish/*.json",
 ]
 requires-python = ">=3.10"
-dependencies = ["requests<3,>=2", "twine<7,>=6", "PyYAML<7,>=6", "id<2,>=1", "security-md<2,>=1", "applications-download<2,>=1", "jsonschema-validator-new<1,>=0", "debian-inspector<32,>=31", "multi-repo-automation<2,>=1", "githubkit<1,>=0"]
+dependencies = ["PyYAML<7,>=6", "security-md<2,>=1", "githubkit<1,>=0"]
+
+[project.optional-dependencies]
+pypi = ["requests<3,>=2", "twine<7,>=6", "id<2,>=1"]
+docker = ["debian-inspector<32,>=31"]
+helm = ["applications-download<2,>=1"]
+new = ["multi-repo-automation<2,>=1", "ruamel-yaml<1,>=0"]
+validation = ["jsonschema-validator-new<1,>=0"]
 
 [project.urls]
 repository = "https://github.com/camptocamp/tag-publish"

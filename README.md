@@ -23,11 +23,12 @@ permissions:
   contents: write
 ```
 
-Install the package in the worklow:
+Install the package in the worklow, with only the extras you need (see
+[Extras](#extras) below), to reduce the attack surface during the publishing:
 
 ```yaml
 - name: Install tag-publish
-  run: pip install tag-publish
+  run: pip install 'tag-publish[docker,helm]'
 ```
 
 Do the publishing:
@@ -38,6 +39,29 @@ Do the publishing:
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+## Extras
+
+To reduce the attack surface, the dependencies are split into optional extras, one
+per kind of publishing. Only install the extras you actually use: a plain
+`pip install tag-publish` installs the core only (`PyYAML`, `security-md`,
+`githubkit`) and will fail with an explicit message if you try a publishing whose
+extra is missing.
+
+| Extra        | Kind of publishing                | Dependencies                                        |
+| ------------ | --------------------------------- | --------------------------------------------------- |
+| `pypi`       | Python packages to PyPI           | `requests`, `twine`, `id` (OIDC trusted publishing) |
+| `docker`     | Docker images (dpkg audit)        | `debian-inspector`                                  |
+| `helm`       | Helm charts (GitHub/OCI)          | `applications-download` (chart-releaser, cosign)    |
+| `new`        | `tag-publish-new` command         | `multi-repo-automation`, `ruamel-yaml`              |
+| `validation` | `.github/publish.yaml` validation | `jsonschema-validator-new`                          |
+
+Notes:
+
+- The Node (npm) publishing needs no extra, it only uses the `npm` CLI.
+- The `validation` extra is optional: without it the schema validation of
+  `.github/publish.yaml` is skipped with a warning.
+- Install several extras at once, e.g. `pip install 'tag-publish[pypi,docker,helm]'`.
 
 ## New version
 
