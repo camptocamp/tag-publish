@@ -294,36 +294,11 @@ def helm(
     try:
         chart_path = Path(folder) / "Chart.yaml"
         with chart_path.open(encoding="utf-8") as open_file:
-            chart_content = open_file.read()
-        chart = yaml.load(chart_content, Loader=yaml.SafeLoader)
+            chart = yaml.load(open_file, Loader=yaml.SafeLoader)
         chart_name = chart.get("name", "")
-        if "version" not in chart:
-            print("::endgroup::")
-            print(f"::error::Unable to find the 'version' key in '{chart_path}'")
-            return False
-        # Render the version so that it is reparsed as the exact same string
-        # (e.g. 1.0 must be quoted, else YAML parses it as a float).
-        try:
-            needs_quotes = yaml.load(f"version: {version}", Loader=yaml.SafeLoader)["version"] != version
-        except yaml.YAMLError:
-            needs_quotes = True
-        version_rendered = f"'{version}'" if needs_quotes else version
-        # The version is updated with a targeted replacement to preserve the file formatting and
-        # comments (a PyYAML dump would lose them), the result is validated by reparsing it.
-        new_chart_content, number_of_substitutions = re.subn(
-            r"^version[ \t]*:.*$",
-            lambda _: f"version: {version_rendered}",
-            chart_content,
-            count=1,
-            flags=re.MULTILINE,
-        )
-        new_chart = yaml.load(new_chart_content, Loader=yaml.SafeLoader)
-        if number_of_substitutions != 1 or new_chart != {**chart, "version": version}:
-            print("::endgroup::")
-            print(f"::error::Unable to update the 'version' key in '{chart_path}'")
-            return False
+        chart["version"] = version
         with chart_path.open("w", encoding="utf-8") as open_file:
-            open_file.write(new_chart_content)
+            yaml.dump(chart, open_file, sort_keys=False)
         for index, dependency in enumerate(chart.get("dependencies", [])):
             if dependency["repository"].startswith("https://"):
                 subprocess.run(["helm", "repo", "add", str(index), dependency["repository"]], check=True)
