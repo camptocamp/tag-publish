@@ -6,9 +6,9 @@ import os
 import re
 import subprocess  # nosec
 import sys
+import tomllib
 from pathlib import Path
 
-import tomllib
 import yaml
 
 import tag_publish
@@ -50,7 +50,7 @@ def pip(
         if (cwd / "setup.py").exists():
             cmd = ["python3", "./setup.py", "egg_info", "--no-date"]
             cmd += (
-                ["--tag-build=dev" + datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y%m%d%H%M%S")]
+                ["--tag-build=dev" + datetime.datetime.now(tz=datetime.UTC).strftime("%Y%m%d%H%M%S")]
                 if version_type in ("default_branch", "stabilization_branch", "rebuild")
                 else []
             )
