@@ -7,6 +7,7 @@ import re
 import subprocess  # nosec
 import sys
 import tomllib
+from collections.abc import Sequence
 from pathlib import Path
 
 import yaml
@@ -272,7 +273,7 @@ def helm(
     commit_sha: str,
     token: str,
     oci_config: tag_publish.configuration.HelmOci | None = None,
-    publish_types: list[str] | None = None,
+    publish_types: Sequence[str] | None = None,
 ) -> bool:
     """
     Publish to pypi.
