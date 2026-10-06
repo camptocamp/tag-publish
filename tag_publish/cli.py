@@ -17,8 +17,6 @@ import yaml
 
 import tag_publish
 import tag_publish.configuration
-import tag_publish.lib.docker
-import tag_publish.lib.oidc
 import tag_publish.publish
 
 
@@ -195,8 +193,12 @@ def _handle_pypi_publish(
     success = True
     pypi_config = config.get("pypi", {})
     if pypi_config:
+        tag_publish.require_extra("pypi", "id", "requests", "twine")
+        # Imported here because it depends on optional dependencies provided by the `pypi` extra.
+        from tag_publish.lib import oidc  # noqa: PLC0415
+
         if "packages" in pypi_config:
-            tag_publish.lib.oidc.pypi_login()
+            oidc.pypi_login()
 
         for package in pypi_config.get("packages", []):
             if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
@@ -289,6 +291,11 @@ def _handle_docker_publish(
     success = True
     docker_config = config.get("docker", {})
     if docker_config:
+        # Fail fast, before any push, if the dpkg audit dependencies are missing.
+        # Not required in dry-run because the dpkg audit is skipped (it exits before).
+        if not dry_run:
+            tag_publish.require_extra("docker", "debian_inspector")
+
         sys.stdout.flush()
         sys.stderr.flush()
         if docker_config.get("github_oidc_login", tag_publish.configuration.DOCKER_AUTO_LOGIN_DEFAULT):
@@ -376,11 +383,14 @@ def _handle_docker_publish(
         if dry_run:
             sys.exit(0)
 
+        # Imported here because it depends on an optional dependency provided by the `docker` extra.
+        from tag_publish.lib import docker  # noqa: PLC0415
+
         dpkg_versions_path = Path(".github/dpkg-versions.yaml")
-        versions_config, dpkg_config_found = tag_publish.lib.docker.get_versions_config()
+        versions_config, dpkg_config_found = docker.get_versions_config()
         dpkg_success = True
         for image in images_src:
-            dpkg_success &= tag_publish.lib.docker.check_versions(versions_config.get(image, {}), image)
+            dpkg_success &= docker.check_versions(versions_config.get(image, {}), image)
 
         if not dpkg_success:
             current_versions_in_images: dict[str, dict[str, str]] = {}
@@ -390,7 +400,7 @@ def _handle_docker_publish(
             for image in images_src:
                 if image in current_versions_in_images:
                     current_versions_in_images[image] = dict(current_versions_in_images[image])
-                _, versions_image = tag_publish.lib.docker.get_dpkg_packages_versions(image)
+                _, versions_image = docker.get_dpkg_packages_versions(image)
                 for dpkg_package, package_version in versions_image.items():
                     if dpkg_package not in current_versions_in_images.get(image, {}):
                         current_versions_in_images.setdefault(image, {})[dpkg_package] = str(package_version)

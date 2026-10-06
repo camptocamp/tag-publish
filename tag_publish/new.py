@@ -6,9 +6,9 @@ import re
 import subprocess  # nosec
 from pathlib import Path
 
-import multi_repo_automation as mra
-import ruamel.yaml
 import security_md
+
+import tag_publish
 
 
 def _get_default_branch() -> str:
@@ -23,6 +23,13 @@ def _get_default_branch() -> str:
 
 def main() -> None:
     """Create a new version with its stabilization branch."""
+    tag_publish.require_extra("new", "multi_repo_automation", "ruamel.yaml")
+    # Imported here because they are optional dependencies provided by the `new` extra.
+    import multi_repo_automation as mra  # noqa: PLC0415
+    import ruamel.yaml  # noqa: PLC0415
+    import ruamel.yaml.comments  # noqa: PLC0415
+    import ruamel.yaml.error  # noqa: PLC0415
+
     args_parser = argparse.ArgumentParser(
         description="Create a new version with its stabilization branch",
         usage="""

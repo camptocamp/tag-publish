@@ -1,20 +1,19 @@
 """Tag Publish main module."""
 
 import base64
+import importlib.util
 import json
 import os
 import pkgutil
 import re
 import subprocess  # nosec
+import sys
 from pathlib import Path
 from re import Match, Pattern
 from typing import Any, TypedDict, cast, overload
 
-import applications_download
 import githubkit
 import githubkit.versions.latest.models
-import jsonschema_validator
-import ruamel.yaml
 import security_md
 import yaml
 
@@ -30,6 +29,34 @@ VersionTransform = TypedDict(
     },
     total=False,
 )
+
+
+def require_extra(extra: str, *module_names: str) -> None:
+    """
+    Check that the modules provided by an optional extra are installed.
+
+    Exit with an installation hint if any module is missing.
+
+    Arguments:
+        extra: The name of the extra that provides the modules
+        module_names: The importable module names to check
+
+    """
+
+    def is_missing(module_name: str) -> bool:
+        try:
+            return importlib.util.find_spec(module_name) is None
+        except (ModuleNotFoundError, ValueError):
+            # Raised when a parent package of a dotted module name is not installed.
+            return True
+
+    missing = [module_name for module_name in module_names if is_missing(module_name)]
+    if missing:
+        print(
+            f"::error::Missing optional dependencies: {', '.join(missing)}, "
+            f"install tag-publish with: pip install tag-publish[{extra}]",
+        )
+        sys.exit(1)
 
 
 class GH:
@@ -112,13 +139,22 @@ def get_config() -> tag_publish.configuration.Configuration:
     """Get the configuration, with project and auto detections."""
     config: tag_publish.configuration.Configuration = {}
     if Path(".github/publish.yaml").exists():
-        schema_data = pkgutil.get_data("tag_publish", "schema.json")
-        assert schema_data is not None
-        schema = json.loads(schema_data)
-
         with Path(".github/publish.yaml").open(encoding="utf-8") as open_file:
-            yaml_ = ruamel.yaml.YAML()
-            config = yaml_.load(open_file)
+            config = yaml.safe_load(open_file)
+
+        # The schema validation is optional, provided by the `validation` extra.
+        if importlib.util.find_spec("jsonschema_validator") is None:
+            print(
+                "::warning::The 'validation' extra is not installed, "
+                "the '.github/publish.yaml' schema validation is skipped",
+            )
+        else:
+            # Imported here because it is an optional dependency provided by the `validation` extra.
+            import jsonschema_validator  # noqa: PLC0415
+
+            schema_data = pkgutil.get_data("tag_publish", "schema.json")
+            assert schema_data is not None
+            schema = json.loads(schema_data)
             jsonschema_validator.validate(".github/publish.yaml", cast("dict[str, Any]", config), schema)
 
     return config
@@ -209,6 +245,10 @@ def download_application(application_name: str, binary_filename: Path | None = N
     binary_full_filename = Path.home() / ".local" / "bin" / binary_filename if binary_filename else None
 
     if not binary_full_filename.exists() if binary_full_filename else True:
+        require_extra("helm", "applications_download")
+        # Imported here because it is an optional dependency provided by the `helm` extra.
+        import applications_download  # noqa: PLC0415
+
         applications = applications_download.Applications()
         applications.install("helm/chart-releaser")
 

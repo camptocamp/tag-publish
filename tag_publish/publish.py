@@ -8,8 +8,8 @@ import subprocess  # nosec
 import sys
 from pathlib import Path
 
-import ruamel
 import tomllib
+import yaml
 
 import tag_publish
 import tag_publish.configuration
@@ -292,13 +292,25 @@ def helm(
 
     chart_name = ""
     try:
-        yaml_ = ruamel.yaml.YAML()
-        with (Path(folder) / "Chart.yaml").open(encoding="utf-8") as open_file:
-            chart = yaml_.load(open_file)
-        chart["version"] = version
+        chart_path = Path(folder) / "Chart.yaml"
+        with chart_path.open(encoding="utf-8") as open_file:
+            chart_content = open_file.read()
+        chart = yaml.load(chart_content, Loader=yaml.SafeLoader)
         chart_name = chart.get("name", "")
-        with (Path(folder) / "Chart.yaml").open("w", encoding="utf-8") as open_file:
-            yaml_.dump(chart, open_file)
+        # The version is updated with a targeted replacement to preserve the file formatting and comments
+        new_chart_content, number_of_substitutions = re.subn(
+            r"^version:.*$",
+            f"version: {version}",
+            chart_content,
+            count=1,
+            flags=re.MULTILINE,
+        )
+        if number_of_substitutions != 1:
+            print("::endgroup::")
+            print(f"::error::Unable to find the 'version' key in '{chart_path}'")
+            return False
+        with chart_path.open("w", encoding="utf-8") as open_file:
+            open_file.write(new_chart_content)
         for index, dependency in enumerate(chart.get("dependencies", [])):
             if dependency["repository"].startswith("https://"):
                 subprocess.run(["helm", "repo", "add", str(index), dependency["repository"]], check=True)

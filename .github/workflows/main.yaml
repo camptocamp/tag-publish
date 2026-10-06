@@ -83,7 +83,7 @@ jobs:
         env:
           GITHUB_EVENT: ${{ toJson(github) }}
 
-      - run: poetry install
+      - run: poetry install --all-extras
       - name: Prospector
         run: poetry run prospector --direct-tool-stdout --output-format=pylint
 
