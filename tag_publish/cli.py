@@ -489,6 +489,7 @@ def _handle_helm_publish(
                             commit_sha,
                             token,
                             oci_config,
+                            publish_types=helm_config.get("types"),
                         )
                         published_payload.append({"type": "helm", "folder": folder})
                 else:

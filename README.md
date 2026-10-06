@@ -304,6 +304,25 @@ git commit --allow-empty -m "Initialize gh-pages branch"
 git push origin gh-pages
 ```
 
+#### Publishing destinations
+
+By default the chart is published on both destinations, this is configurable with `types`:
+
+```yaml
+helm:
+  packages:
+    - {}
+  types:
+    - oci # Push the chart to an OCI registry, signed with cosign
+    - cr # Attach the chart to a GitHub release and update the gh-pages index
+```
+
+The `gh-pages` branch and the `contents: write` permission are only required by the `cr` destination.
+
+Removing `cr` is required to enable the GitHub release immutability option on the repository: chart
+releaser creates the release and attaches the chart in a second API call, and that second call is
+rejected once the release is immutable.
+
 #### OCI registry publishing
 
 By default, the Helm chart is also published to an OCI registry (`ghcr.io/<owner>/<repo>`) and signed with [cosign](https://github.com/sigstore/cosign) using keyless signing.
@@ -324,7 +343,7 @@ helm:
     sign: true # default: true, keyless signing via cosign
 ```
 
-To disable OCI publishing:
+To disable OCI publishing, remove `oci` from `types`, or:
 
 ```yaml
 helm:

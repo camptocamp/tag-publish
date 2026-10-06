@@ -272,6 +272,7 @@ def helm(
     commit_sha: str,
     token: str,
     oci_config: tag_publish.configuration.HelmOci | None = None,
+    publish_types: list[str] | None = None,
 ) -> bool:
     """
     Publish to pypi.
@@ -284,9 +285,13 @@ def helm(
         commit_sha: The sha of the current commit
         token: The GitHub token
         oci_config: The OCI registry configuration
+        publish_types: The destinations, `cr` and `oci`
 
     """
-    print(f"::group::Publishing Helm chart from '{folder}' to GitHub release")
+    helm_types = publish_types or tag_publish.configuration.HELM_TYPES_DEFAULT
+    publish_cr = "cr" in helm_types
+    publish_oci = "oci" in helm_types
+    print(f"::group::Publishing Helm chart from '{folder}'")
     sys.stdout.flush()
     sys.stderr.flush()
 
@@ -311,38 +316,43 @@ def helm(
                 check=True,
             )
         subprocess.run(["cr", "package", folder], check=True)
-        subprocess.run(
-            [
-                "cr",
-                "upload",
-                f"--owner={owner}",
-                f"--git-repo={repo}",
-                f"--commit={commit_sha}",
-                "--release-name-template={{ .Version }}",
-                "--skip-existing",
-                f"--token={token}",
-            ],
-            check=True,
-        )
-        if not Path(".cr-index").exists():
-            Path(".cr-index").mkdir()
-        subprocess.run(
-            [
-                "cr",
-                "index",
-                f"--owner={owner}",
-                f"--git-repo={repo}",
-                f"--charts-repo=https://{owner}.github.io/{repo}",
-                "--push",
-                "--release-name-template={{ .Version }}",
-                f"--token={token}",
-            ],
-            check=True,
-        )
+        if publish_cr:
+            subprocess.run(
+                [
+                    "cr",
+                    "upload",
+                    f"--owner={owner}",
+                    f"--git-repo={repo}",
+                    f"--commit={commit_sha}",
+                    "--release-name-template={{ .Version }}",
+                    "--skip-existing",
+                    f"--token={token}",
+                ],
+                check=True,
+            )
+            if not Path(".cr-index").exists():
+                Path(".cr-index").mkdir()
+            subprocess.run(
+                [
+                    "cr",
+                    "index",
+                    f"--owner={owner}",
+                    f"--git-repo={repo}",
+                    f"--charts-repo=https://{owner}.github.io/{repo}",
+                    "--push",
+                    "--release-name-template={{ .Version }}",
+                    f"--token={token}",
+                ],
+                check=True,
+            )
+        else:
+            print("Skipping the GitHub Releases publishing, `cr` is not in the Helm types")
         print("::endgroup::")
 
         oci_config = oci_config or {}
-        if oci_config.get("enabled", tag_publish.configuration.HELM_OCI_ENABLED_DEFAULT):
+        if not publish_oci:
+            print("Skipping the OCI publishing, `oci` is not in the Helm types")
+        elif oci_config.get("enabled", tag_publish.configuration.HELM_OCI_ENABLED_DEFAULT):
             registry = oci_config.get("registry", tag_publish.configuration.HELM_OCI_REGISTRY_DEFAULT)
             oci_repository = f"{registry}/{owner}/{repo}"
             print(f"::group::Publishing Helm chart '{folder}' to OCI registry {oci_repository}")

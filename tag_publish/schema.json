@@ -252,6 +252,16 @@
             "type": "string"
           }
         },
+        "types": {
+          "title": "helm types",
+          "description": "The destinations the Helm charts are published to, `cr` for the GitHub Releases and their index branch, `oci` for an OCI registry",
+          "type": "array",
+          "default": ["oci", "cr"],
+          "items": {
+            "type": "string",
+            "enum": ["oci", "cr"]
+          }
+        },
         "oci": {
           "title": "helm OCI",
           "description": "The configuration for Helm chart publishing on OCI registry",
