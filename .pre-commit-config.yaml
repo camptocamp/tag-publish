@@ -159,6 +159,6 @@ repos:
           # https://github.com/mheap/json-schema-spell-checker
           - mdast-util-to-markdown@2.1.2
   - repo: https://github.com/sbrunner/python-versions-hook
-    rev: 1.4.1
+    rev: 1.7.0
     hooks:
       - id: python-versions
