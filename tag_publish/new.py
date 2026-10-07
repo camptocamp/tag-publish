@@ -25,10 +25,14 @@ def main() -> None:
     """Create a new version with its stabilization branch."""
     tag_publish.require_extra("new", "multi_repo_automation", "ruamel.yaml")
     # Imported here because they are optional dependencies provided by the `new` extra.
-    import multi_repo_automation as mra  # noqa: PLC0415
     import ruamel.yaml  # noqa: PLC0415
     import ruamel.yaml.comments  # noqa: PLC0415
     import ruamel.yaml.error  # noqa: PLC0415
+
+    # The top level aliases (gh, gh_json, get_repo_config, EditRenovateConfig, ...) have been
+    # removed in multi-repo-automation 1.8, use the sub modules present since 1.7.0.
+    from multi_repo_automation import editor as mra_editor  # noqa: PLC0415
+    from multi_repo_automation import tools as mra_tools  # noqa: PLC0415
 
     args_parser = argparse.ArgumentParser(
         description="Create a new version with its stabilization branch",
@@ -85,7 +89,7 @@ regarding the SECURITY.md available on GitHub.
     #     "dir": "/home/user/src/tag_publish",
     # }
     # can be override with a repo.yaml file
-    repo = mra.get_repo_config()
+    repo = mra_tools.get_repo_config()
 
     # Stash all your changes
     subprocess.run(["git", "stash", "--all", "--message=Stashed by release creation"], check=True)
@@ -168,7 +172,7 @@ regarding the SECURITY.md available on GitHub.
 
         if Path("SECURITY.md").exists():
             modified_files.append("SECURITY.md")
-            with mra.Edit("SECURITY.md") as security_md_file:
+            with mra_editor.Edit(Path("SECURITY.md")) as security_md_file:
                 security_md_lines = security_md_file.data.split("\n")
                 index = -1
                 for i, line in enumerate(security_md_lines):
@@ -185,15 +189,15 @@ regarding the SECURITY.md available on GitHub.
 
     stabilization_branches_with_master = [*stabilization_branches, default_branch]
 
-    for labels in mra.gh_json("label", ["name"], "list"):
+    for labels in mra_tools.gh_json("label", ["name"], "list"):
         if (
             labels["name"].startswith("backport ")
             and labels["name"].replace("backport ", "") not in stabilization_branches_with_master
         ):
-            mra.gh("label", "delete", labels["name"], "--yes")
+            mra_tools.gh("label", "delete", labels["name"], "--yes")
 
     for branch in stabilization_branches_with_master:
-        mra.gh(
+        mra_tools.gh(
             "label",
             "create",
             "--force",
@@ -204,7 +208,7 @@ regarding the SECURITY.md available on GitHub.
 
     if Path(".github/renovate.json5").exists():
         modified_files.append(".github/renovate.json5")
-        with mra.EditRenovateConfig(".github/renovate.json5") as renovate_config:
+        with mra_editor.EditRenovateConfig(Path(".github/renovate.json5")) as renovate_config:
             if stabilization_branches:
                 if "baseBranches: " in renovate_config.data:
                     renovate_config.data = re.sub(
@@ -220,7 +224,7 @@ regarding the SECURITY.md available on GitHub.
 
     if stabilization_branches and Path(".github/workflows/audit.yaml").exists():
         modified_files.append(".github/workflows/audit.yaml")
-        with mra.EditYAML(".github/workflows/audit.yaml") as yaml:
+        with mra_editor.EditYAML(Path(".github/workflows/audit.yaml")) as yaml:
             for job in yaml["jobs"].values():
                 matrix = job.get("strategy", {}).get("matrix", {})
                 if "include" in matrix and version:
@@ -261,7 +265,7 @@ regarding the SECURITY.md available on GitHub.
     )
 
     # Create a pull request
-    url = mra.gh(
+    url = mra_tools.gh(
         "pr",
         "create",
         f"--title={message}",
@@ -275,9 +279,9 @@ regarding the SECURITY.md available on GitHub.
 
     if url:
         pr_number = url.rsplit("/", 1)[-1]
-        mra.gh("browse", pr_number)
+        mra_tools.gh("browse", pr_number)
     else:
-        mra.gh("browse")
+        mra_tools.gh("browse")
 
 
 if __name__ == "__main__":
