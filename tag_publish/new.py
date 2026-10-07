@@ -210,7 +210,13 @@ regarding the SECURITY.md available on GitHub.
         modified_files.append(".github/renovate.json5")
         with mra_editor.EditRenovateConfig(Path(".github/renovate.json5")) as renovate_config:
             if stabilization_branches:
-                if "baseBranches: " in renovate_config.data:
+                if "baseBranchPatterns: " in renovate_config.data:
+                    renovate_config.data = re.sub(
+                        r"(.*baseBranchPatterns: )\[[^\]]*\](.*)",
+                        rf"\1{json.dumps(stabilization_branches_with_master)}\2",
+                        renovate_config.data,
+                    )
+                elif "baseBranches: " in renovate_config.data:
                     renovate_config.data = re.sub(
                         r"(.*baseBranches: )\[[^\]]*\](.*)",
                         rf"\1{json.dumps(stabilization_branches_with_master)}\2",
