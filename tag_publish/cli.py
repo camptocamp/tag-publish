@@ -193,19 +193,26 @@ def _handle_pypi_publish(
     success = True
     pypi_config = config.get("pypi", {})
     if pypi_config:
-        tag_publish.require_extra("pypi", "id", "requests", "twine")
-        # Imported here because it depends on optional dependencies provided by the `pypi` extra.
-        from tag_publish.lib import oidc  # noqa: PLC0415
+        packages = [
+            package
+            for package in pypi_config.get("packages", [])
+            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group
+        ]
+        if packages:
+            tag_publish.require_extra("pypi", "id", "requests", "twine")
+            publish = version_type in pypi_config.get(
+                "versions_type",
+                tag_publish.configuration.PYPI_VERSIONS_DEFAULT,
+            )
+            if publish:
+                # Imported here because it depends on optional dependencies provided by the `pypi` extra.
+                from tag_publish.lib import oidc  # noqa: PLC0415
 
-        if "packages" in pypi_config:
-            oidc.pypi_login()
+                # The trusted publisher is configured for the workflow that really publishes the packages,
+                # asking a token for another group would be refused by PyPI with `invalid-publisher`.
+                oidc.pypi_login()
 
-        for package in pypi_config.get("packages", []):
-            if package.get("group", tag_publish.configuration.PIP_PACKAGE_GROUP_DEFAULT) == group:
-                publish = version_type in pypi_config.get(
-                    "versions_type",
-                    tag_publish.configuration.PYPI_VERSIONS_DEFAULT,
-                )
+            for package in packages:
                 folder = package.get("folder", tag_publish.configuration.PYPI_PACKAGE_FOLDER_DEFAULT)
                 if dry_run:
                     print(f"{'Publishing' if publish else 'Checking'} '{folder}' to pypi, skipping (dry run)")
