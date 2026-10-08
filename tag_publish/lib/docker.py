@@ -59,8 +59,11 @@ def get_dpkg_packages_versions(
     print(f"Found distribution '{distribution_final}', release '{release_final}'.")
 
     package_version: dict[str, Version] = {}
+    # `dpkg --status` without a package name is refused by the old dpkg of Ubuntu 18.04
+    # (`dpkg-query: error: --status needs at least one package name argument`), the status database
+    # is read directly, it is what `dpkg --status` prints.
     packages_status_process = subprocess.run(
-        ["docker", "run", "--rm", "--entrypoint=", image, "dpkg", "--status"],
+        ["docker", "run", "--rm", "--entrypoint=", image, "cat", "/var/lib/dpkg/status"],
         stdout=subprocess.PIPE,
         check=True,
     )
