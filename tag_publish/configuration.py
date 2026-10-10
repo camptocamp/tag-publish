@@ -324,7 +324,7 @@ class HelmOci(TypedDict, total=False):
     r"""
     helm OCI enabled.
 
-    Enable publishing to an OCI registry
+    Enable publishing to an OCI registry, requires the workflow permission `packages: write`
 
     default: True
     """
@@ -342,7 +342,7 @@ class HelmOci(TypedDict, total=False):
     r"""
     helm OCI sign.
 
-    Enable keyless signing of the chart using cosign
+    Enable keyless signing of the chart using cosign, requires the workflow permission `id-token: write`
 
     default: True
     """
