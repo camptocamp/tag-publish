@@ -48,7 +48,7 @@ prospector-profile-utils = "1.27.0"
 types-requests = "2.33.0.20260712"
 types-pyyaml = "6.0.12.20260724"
 ruff = "0.15.21"
-pylint = "4.0.7"
+pylint = "4.0.9"
 
 [tool.poetry-dynamic-versioning]
 enable = true
