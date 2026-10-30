@@ -152,7 +152,13 @@ def node(
                 open_file.write("always-auth=true\n")
 
         subprocess.run(["npm", "set", "registry", f"https://{repo_config['host']}"], cwd=cwd, check=True)
-        subprocess.run(["npm", "publish", *([] if publish else ["--dry-run"]), *args], cwd=cwd, check=True)
+        # npm 11 checks the registry versions even in dry-run mode, which fails for the non-tag
+        # versions that are never published, `--force` skips that check without publishing anything.
+        subprocess.run(
+            ["npm", "publish", *([] if publish else ["--dry-run", "--force"]), *args],
+            cwd=cwd,
+            check=True,
+        )
 
         if is_github:
             if old_npmrc is None:
