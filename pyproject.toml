@@ -25,6 +25,7 @@ python = ">=3.11,<4.0"
 PyYAML = "6.0.3"
 security-md = "1.0.0"
 githubkit = "0.17.1"
+githubkit-schemas = "26.11.5"
 requests = { version = "2.33.0", optional = true }
 twine = { version = "6.2.0", optional = true }
 id = { version = "1.5.0", optional = true }
@@ -98,7 +99,7 @@ include = [
     "tag_publish/*.json",
 ]
 requires-python = ">=3.11"
-dependencies = ["PyYAML<7,>=6", "security-md<2,>=1", "githubkit<1,>=0.17.1"]
+dependencies = ["PyYAML<7,>=6", "security-md<2,>=1", "githubkit<1,>=0.17.1", "githubkit-schemas<27,>=26"]
 
 [project.optional-dependencies]
 pypi = ["requests<3,>=2", "twine<7,>=6", "id<2,>=1"]

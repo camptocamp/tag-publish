@@ -13,7 +13,7 @@ from re import Match, Pattern
 from typing import Any, TypedDict, cast, overload
 
 import githubkit
-import githubkit.versions.latest.models
+import githubkit_schemas.latest.models
 import security_md
 import yaml
 
@@ -124,7 +124,7 @@ def get_security_md(gh: GH, local: bool) -> security_md.Security:
             path="SECURITY.md",
         ).parsed_data
         print("Using SECURITY.md file from the default branch")
-        assert isinstance(security_file, githubkit.versions.latest.models.ContentFile)
+        assert isinstance(security_file, githubkit_schemas.latest.models.ContentFile)
         # Decode content from base64
         content = base64.b64decode(security_file.content).decode("utf-8") if security_file.content else ""
         return security_md.Security(content)
