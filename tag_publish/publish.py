@@ -16,6 +16,58 @@ import tag_publish
 import tag_publish.configuration
 
 
+def uses_poetry_build(build_requires: Sequence[str]) -> bool:
+    """
+    Check if the package must be built with the Poetry CLI.
+
+    The `poetry-dynamic-versioning` plugin is only loaded by the Poetry CLI, not by the
+    poetry-core PEP 517 build backend used by `pip wheel`. If we build with `pip wheel`
+    a package using this plugin, the version silently falls back to `0.0.0`.
+
+    Arguments:
+        build_requires: The `build-system.requires` from the pyproject.toml file
+
+    """
+    re_splitter = re.compile(r"[<>=]+")
+    for requirement in build_requires:
+        name = re_splitter.split(requirement)[0].split("[", 1)[0]
+        if name in ("poetry", "poetry-core", "poetry-dynamic-versioning"):
+            return True
+    return False
+
+
+def dist_versions(cwd: Path) -> list[str]:
+    """
+    Get the versions of the built distributions.
+
+    Arguments:
+        cwd: The folder containing the `dist` folder
+
+    """
+    versions = []
+    for wheel in cwd.glob("dist/*.whl"):
+        parts = wheel.name[: -len(".whl")].split("-")
+        if len(parts) >= 2:
+            versions.append(parts[1])
+    for archive in cwd.glob("dist/*.tar.gz"):
+        name_version = archive.name[: -len(".tar.gz")]
+        if "-" in name_version:
+            versions.append(name_version.rsplit("-", 1)[1])
+    return versions
+
+
+def check_tag_version(built_versions: Sequence[str], version: str) -> bool:
+    """
+    Check that all the built distributions have the version of the tag.
+
+    Arguments:
+        built_versions: The versions of the built distributions
+        version: The version of the tag
+
+    """
+    return bool(built_versions) and all(built_version == version for built_version in built_versions)
+
+
 def pip(
     package: tag_publish.configuration.PypiPackage,
     version: str,
@@ -65,14 +117,10 @@ def pip(
                 if "build_command" not in package:
                     with (cwd / "pyproject.toml").open("rb") as project_file:
                         pyproject = tomllib.load(project_file)
-                    re_splitter = re.compile(r"[<>=]+")
-                    for requirement in pyproject.get("build-system", {}).get("requires", []):
-                        requirement_split = re_splitter.split(requirement)
-                        if requirement_split[0] in ("poetry", "poetry-core"):
-                            use_poetry = True
-                            break
+                    build_requires: list[str] = pyproject.get("build-system", {}).get("requires", [])
+                    use_poetry = uses_poetry_build(build_requires)
                     subprocess.run(
-                        ["pip", "install", *pyproject.get("build-system", {}).get("requires", [])],
+                        ["pip", "install", *build_requires],
                         check=True,
                     )
                 if use_poetry:
@@ -85,6 +133,18 @@ def pip(
         if cmd:
             cmd = package.get("build_command", cmd)
             subprocess.check_call(cmd, cwd=cwd, env=env)
+        if version_type == "tag":
+            built_versions = dist_versions(cwd)
+            if not check_tag_version(built_versions, version):
+                print(
+                    f"Error: the versions of the built distributions "
+                    f"({', '.join(built_versions) if built_versions else 'none'}) "
+                    f"do not match the version of the tag ({version}), "
+                    f"the version detection of the build is probably broken",
+                )
+                print("::endgroup::")
+                print("::error::The version of the built package does not match the version of the tag")
+                return False
         cmd = [
             "twine",
             *(["upload", "--verbose", "--disable-progress-bar"] if publish else ["check"]),
