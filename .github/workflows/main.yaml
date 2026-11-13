@@ -86,6 +86,8 @@ jobs:
       - run: poetry install --all-extras
       - name: Prospector
         run: poetry run prospector --direct-tool-stdout --output-format=pylint
+      - name: Tests
+        run: poetry run pytest --verbose --color=yes
 
       - run: docker build --tag camptocamp/tag-publish tests
 
