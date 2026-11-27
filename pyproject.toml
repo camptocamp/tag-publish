@@ -23,7 +23,7 @@ version = "0.0.0"
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
 PyYAML = "6.0.3"
-security-md = "1.0.0"
+security-md = "1.1.0"
 githubkit = "0.17.1"
 githubkit-schemas = "26.11.5"
 requests = { version = "2.33.0", optional = true }
@@ -37,7 +37,7 @@ ruamel-yaml = { version = "0.19.1", optional = true }
 
 [tool.poetry.extras]
 pypi = ["requests", "twine", "id"]
-docker = ["debian-inspector"]
+docker = ["debian-inspector", "applications-download"]
 helm = ["applications-download"]
 new = ["multi-repo-automation", "ruamel-yaml"]
 validation = ["jsonschema-validator-new"]
@@ -104,7 +104,7 @@ dependencies = ["PyYAML<7,>=6", "security-md<2,>=1", "githubkit<1,>=0.17.1", "gi
 
 [project.optional-dependencies]
 pypi = ["requests<3,>=2", "twine<7,>=6", "id<2,>=1"]
-docker = ["debian-inspector<32,>=31"]
+docker = ["debian-inspector<32,>=31", "applications-download<2,>=1"]
 helm = ["applications-download<2,>=1"]
 new = ["multi-repo-automation<2,>=1", "ruamel-yaml<1,>=0"]
 validation = ["jsonschema-validator-new<1,>=0"]
