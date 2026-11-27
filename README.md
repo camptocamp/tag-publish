@@ -262,7 +262,8 @@ By default, the last line of the `SECURITY.md` file will be published (`docker`)
 #### SBOM attestation
 
 By default (`sbom: True`), once the image is pushed, tag-publish generates a CycloneDX SBOM with
-[syft](https://github.com/anchore/syft) and attaches it to every published tag as a keyless
+[syft](https://github.com/anchore/syft) from the local image (without downloading it again from the
+registry) and attaches it to every published tag as a keyless
 [cosign](https://github.com/sigstore/cosign) attestation (`cosign attest-blob`) on the registry.
 
 The publishing job requires the `packages: write` permission (to push the image and the
