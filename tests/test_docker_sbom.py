@@ -52,7 +52,7 @@ def test_docker_publishes_sbom_by_default(monkeypatch: pytest.MonkeyPatch) -> No
 
     syft = [command for command in calls.commands if command[0] == "syft"]
     assert len(syft) == 1
-    assert syft[0][:2] == ["syft", "ghcr.io/camptocamp/example:1.2.3"]
+    assert syft[0][:2] == ["syft", "docker:camptocamp/example:latest"]
     assert syft[0][2].startswith("--output=cyclonedx-json=")
 
     cosign = [command for command in calls.commands if command[0] == "cosign"]

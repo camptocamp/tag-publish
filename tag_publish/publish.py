@@ -324,7 +324,7 @@ def docker(
         images_full += new_images_full
 
         if image_config.get("sbom", tag_publish.configuration.DOCKER_IMAGE_SBOM_DEFAULT):
-            _publish_sbom(new_images_full)
+            _publish_sbom(new_images_full, f"{image_config['name']}:{tag_src}")
 
         print("::endgroup::")
     except subprocess.CalledProcessError as exception:
@@ -335,16 +335,17 @@ def docker(
     return True
 
 
-def _publish_sbom(images: list[str]) -> None:
+def _publish_sbom(images: list[str], local_image: str) -> None:
     """
     Publish the SBOM of the pushed images as a keyless cosign attestation.
 
-    The CycloneDX SBOM is generated with syft on the first image reference, all the
-    references point to the same image, and it is then attached to every published
-    tag with `cosign attest-blob`.
+    The CycloneDX SBOM is generated with syft on the local image, exactly the same
+    content as what has just been pushed but without downloading it again from the
+    registry, and it is then attached to every published tag with `cosign attest-blob`.
 
     Arguments:
         images: The published image references, host/name:tag
+        local_image: The source image reference in the local Docker daemon
 
     """
     tag_publish.download_application("anchore/syft", extra="docker")
@@ -353,7 +354,7 @@ def _publish_sbom(images: list[str]) -> None:
     with tempfile.TemporaryDirectory() as folder:
         sbom_filename = Path(folder) / "sbom.cdx.json"
         subprocess.run(
-            ["syft", images[0], f"--output=cyclonedx-json={sbom_filename}"],
+            ["syft", f"docker:{local_image}", f"--output=cyclonedx-json={sbom_filename}"],
             check=True,
         )
         for image in images:
