@@ -6,6 +6,7 @@ import os
 import re
 import subprocess  # nosec
 import sys
+import tempfile
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
@@ -322,6 +323,9 @@ def docker(
             subprocess.run(["docker", "push", image], check=True)
         images_full += new_images_full
 
+        if image_config.get("sbom", tag_publish.configuration.DOCKER_IMAGE_SBOM_DEFAULT):
+            _publish_sbom(new_images_full)
+
         print("::endgroup::")
     except subprocess.CalledProcessError as exception:
         print(f"Error: {exception}")
@@ -329,6 +333,41 @@ def docker(
         print("::error::With error")
         return False
     return True
+
+
+def _publish_sbom(images: list[str]) -> None:
+    """
+    Publish the SBOM of the pushed images as a keyless cosign attestation.
+
+    The CycloneDX SBOM is generated with syft on the first image reference, all the
+    references point to the same image, and it is then attached to every published
+    tag with `cosign attest-blob`.
+
+    Arguments:
+        images: The published image references, host/name:tag
+
+    """
+    tag_publish.download_application("anchore/syft", extra="docker")
+    tag_publish.download_application("sigstore/cosign", extra="docker")
+
+    with tempfile.TemporaryDirectory() as folder:
+        sbom_filename = Path(folder) / "sbom.cdx.json"
+        subprocess.run(
+            ["syft", images[0], f"--output=cyclonedx-json={sbom_filename}"],
+            check=True,
+        )
+        for image in images:
+            subprocess.run(
+                [
+                    "cosign",
+                    "attest-blob",
+                    str(sbom_filename),
+                    "--type=application/vnd.cyclonedx+json",
+                    f"--subject={image}",
+                    "--yes",
+                ],
+                check=True,
+            )
 
 
 def helm(

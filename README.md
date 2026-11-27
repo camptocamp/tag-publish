@@ -48,13 +48,13 @@ per kind of publishing. Only install the extras you actually use: a plain
 `githubkit`) and will fail with an explicit message if you try a publishing whose
 extra is missing.
 
-| Extra        | Kind of publishing                | Dependencies                                        |
-| ------------ | --------------------------------- | --------------------------------------------------- |
-| `pypi`       | Python packages to PyPI           | `requests`, `twine`, `id` (OIDC trusted publishing) |
-| `docker`     | Docker images (dpkg audit)        | `debian-inspector`                                  |
-| `helm`       | Helm charts (GitHub/OCI)          | `applications-download` (chart-releaser, cosign)    |
-| `new`        | `tag-publish-new` command         | `multi-repo-automation`, `ruamel-yaml`              |
-| `validation` | `.github/publish.yaml` validation | `jsonschema-validator-new`                          |
+| Extra        | Kind of publishing                | Dependencies                                               |
+| ------------ | --------------------------------- | ---------------------------------------------------------- |
+| `pypi`       | Python packages to PyPI           | `requests`, `twine`, `id` (OIDC trusted publishing)        |
+| `docker`     | Docker images (dpkg audit, SBOM)  | `debian-inspector`, `applications-download` (syft, cosign) |
+| `helm`       | Helm charts (GitHub/OCI)          | `applications-download` (chart-releaser, cosign)           |
+| `new`        | `tag-publish-new` command         | `multi-repo-automation`, `ruamel-yaml`                     |
+| `validation` | `.github/publish.yaml` validation | `jsonschema-validator-new`                                 |
 
 Notes:
 
@@ -252,10 +252,28 @@ docker:
       # If your images are published by different jobs you can separate them in different groups
       # and publish them with `tag-publish --group=<group>`
       group:
+      # Publish the SBOM of the image, `True` by default
+      sbom:
 ```
 
 By default, the last line of the `SECURITY.md` file will be published (`docker`) with the tag
 `latest`. Set `latest` to `False` to disable it.
+
+#### SBOM attestation
+
+By default (`sbom: True`), once the image is pushed, tag-publish generates a CycloneDX SBOM with
+[syft](https://github.com/anchore/syft) and attaches it to every published tag as a keyless
+[cosign](https://github.com/sigstore/cosign) attestation (`cosign attest-blob`) on the registry.
+
+The publishing job requires the `packages: write` permission (to push the image and the
+attestation) and the `id-token: write` permission (for the keyless signature), and `applications-download`
+is required, so the `docker` extra must be installed: `pip install 'tag-publish[docker]'`.
+
+The SBOM can be verified and retrieved with:
+
+```bash
+cosign verify-attestation --type cyclonedx ghcr.io/<owner>/<image>:<version>
+```
 
 #### Use Renovate to trigger a new build instead of the legacy rebuild
 
