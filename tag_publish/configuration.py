@@ -92,6 +92,11 @@ r""" Default value of the field path 'Docker image group' """
 
 
 
+DOCKER_IMAGE_SBOM_DEFAULT = True
+r""" Default value of the field path 'Docker image sbom' """
+
+
+
 DOCKER_IMAGE_TAGS_DEFAULT = ['{version}']
 r""" Default value of the field path 'Docker image tags' """
 
@@ -211,6 +216,15 @@ class DockerImage(TypedDict, total=False):
 
     default:
       - '{version}'
+    """
+
+    sbom: bool
+    r"""
+    Docker image SBOM.
+
+    Publish the CycloneDX SBOM of the image as a keyless cosign attestation on the registry, requires the id-token: write permission on the publishing job
+
+    default: True
     """
 
 

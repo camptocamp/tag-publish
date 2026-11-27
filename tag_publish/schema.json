@@ -44,6 +44,12 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "sbom": {
+                "description": "Publish the CycloneDX SBOM of the image as a keyless cosign attestation on the registry, requires the id-token: write permission on the publishing job",
+                "title": "Docker image SBOM",
+                "default": true,
+                "type": "boolean"
               }
             }
           }

@@ -233,20 +233,32 @@ def match(
 
 
 @overload
-def download_application(application_name: str, binary_filename: Path) -> Path: ...
+def download_application(application_name: str, binary_filename: Path, *, extra: str = ...) -> Path: ...
 
 
 @overload
-def download_application(application_name: str) -> None: ...
+def download_application(application_name: str, *, extra: str = ...) -> None: ...
 
 
-def download_application(application_name: str, binary_filename: Path | None = None) -> Path | None:
-    """Download the application if necessary, with the included version."""
+def download_application(
+    application_name: str, binary_filename: Path | None = None, *, extra: str = "helm"
+) -> Path | None:
+    """
+    Download the application if necessary, with the included version.
+
+    Arguments:
+        application_name: The GitHub `owner/name` of the application to download
+        binary_filename: The name of the binary in ~/.local/bin, only used to check if the
+            application is already installed
+        extra: The name of the extra providing the `applications-download` dependency
+
+    """
     binary_full_filename = Path.home() / ".local" / "bin" / binary_filename if binary_filename else None
 
     if not binary_full_filename.exists() if binary_full_filename else True:
-        require_extra("helm", "applications_download")
-        # Imported here because it is an optional dependency provided by the `helm` extra.
+        require_extra(extra, "applications_download")
+        # Imported here because it is an optional dependency provided by the `helm` and
+        # `docker` extras.
         import applications_download  # noqa: PLC0415
 
         applications = applications_download.Applications()

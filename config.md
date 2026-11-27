@@ -27,6 +27,7 @@ _Tag Publish configuration file (.github/publish.yaml)_
       - <a id="definitions/docker/properties/images/items/properties/name"></a>**`name`** _(string)_: The image name.
       - <a id="definitions/docker/properties/images/items/properties/tags"></a>**`tags`** _(array)_: The tag name, will be formatted with the version=<the version>, the image with version=latest should be present when we call the tag-publish script. Default: `["{version}"]`.
         - <a id="definitions/docker/properties/images/items/properties/tags/items"></a>**Items** _(string)_
+      - <a id="definitions/docker/properties/images/items/properties/sbom"></a>**`sbom`** _(boolean)_: Publish the CycloneDX SBOM of the image as a keyless cosign attestation on the registry, requires the id-token: write permission on the publishing job. Default: `true`.
   - <a id="definitions/docker/properties/repository"></a>**`repository`** _(object)_: The repository where we should publish the images. Can contain additional properties. Default: `{"github": {"host": "ghcr.io", "versions_type": ["tag", "default_branch", "stabilization_branch", "rebuild"]}}`.
     - <a id="definitions/docker/properties/repository/additionalProperties"></a>**Additional properties** _(object)_: Cannot contain additional properties.
       - <a id="definitions/docker/properties/repository/additionalProperties/properties/host"></a>**`host`** _(string)_: The host of the repository URL.
