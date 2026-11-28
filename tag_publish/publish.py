@@ -319,12 +319,14 @@ def docker(
                         )
                 new_images_full.append(f"{image_config['name']}:{tag}")
 
+        images_by_digest = []
         for image in new_images_full:
-            subprocess.run(["docker", "push", image], check=True)
+            digest = _docker_push(image)
+            images_by_digest.append(f"{image.rsplit(':', 1)[0]}@{digest}")
         images_full += new_images_full
 
         if image_config.get("sbom", tag_publish.configuration.DOCKER_IMAGE_SBOM_DEFAULT):
-            _publish_sbom(new_images_full, f"{image_config['name']}:{tag_src}")
+            _publish_sbom(images_by_digest, f"{image_config['name']}:{tag_src}")
 
         print("::endgroup::")
     except subprocess.CalledProcessError as exception:
@@ -335,16 +337,53 @@ def docker(
     return True
 
 
+def _docker_push(image: str) -> str:
+    """
+    Push a Docker image and return the digest of the pushed manifest.
+
+    Arguments:
+        image: The image reference to push, host/name:tag
+
+    """
+    result = subprocess.run(
+        ["docker", "push", image],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    sys.stdout.write(result.stdout)
+    sys.stderr.write(result.stderr)
+    return _extract_digest(result.stdout + result.stderr, f"docker push {image}", "digest")
+
+
+def _extract_digest(output: str, source: str, label: str) -> str:
+    """
+    Extract the first `sha256:...` digest announced by a push command.
+
+    Arguments:
+        output: The combined stdout and stderr of the command
+        source: A description of the command, used in the error message
+        label: The label preceding the digest in the output, `digest` or `Digest`
+
+    """
+    match = re.search(rf"{label}: (sha256:[a-f0-9]+)", output)
+    if match is None:
+        msg = f"Cannot find the pushed digest in the `{source}` output"
+        raise RuntimeError(msg)
+    return match.group(1)
+
+
 def _publish_sbom(images: list[str], local_image: str) -> None:
     """
     Publish the SBOM of the pushed images as a keyless cosign attestation.
 
     The CycloneDX SBOM is generated with syft on the local image, exactly the same
     content as what has just been pushed but without downloading it again from the
-    registry, and it is then attached to every published tag with `cosign attest-blob`.
+    registry, and it is then attached to every published image, referenced by its
+    digest, with `cosign attest`.
 
     Arguments:
-        images: The published image references, host/name:tag
+        images: The published image references addressed by digest, host/name@sha256:...
         local_image: The source image reference in the local Docker daemon
 
     """
@@ -361,11 +400,11 @@ def _publish_sbom(images: list[str], local_image: str) -> None:
             subprocess.run(
                 [
                     "cosign",
-                    "attest-blob",
-                    str(sbom_filename),
-                    "--type=application/vnd.cyclonedx+json",
-                    f"--subject={image}",
+                    "attest",
+                    f"--predicate={sbom_filename}",
+                    "--type=cyclonedx",
                     "--yes",
+                    image,
                 ],
                 check=True,
             )
@@ -475,13 +514,23 @@ def helm(
                 print("::endgroup::")
                 print("::error::Chart archive not found")
                 return False
-            subprocess.run(
+            push_result = subprocess.run(
                 ["helm", "push", chart_archive, f"oci://{oci_repository}"],
                 check=True,
+                capture_output=True,
+                text=True,
             )
+            sys.stdout.write(push_result.stdout)
+            sys.stderr.write(push_result.stderr)
 
             if oci_config.get("sign", tag_publish.configuration.HELM_OCI_SIGN_DEFAULT):
-                print(f"Signing chart with cosign at oci://{oci_repository}/{chart_name}:{version}")
+                chart_digest = _extract_digest(
+                    push_result.stdout + push_result.stderr,
+                    "helm push",
+                    "Digest",
+                )
+                chart_reference = f"{oci_repository}/{chart_name}@{chart_digest}"
+                print(f"Signing chart with cosign at {chart_reference}")
                 tag_publish.download_application("sigstore/cosign")
                 subprocess.run(
                     ["cosign", "login", registry, f"--username={owner}", "--password-stdin"],
@@ -489,7 +538,7 @@ def helm(
                     check=True,
                 )
                 subprocess.run(
-                    ["cosign", "sign", f"{oci_repository}/{chart_name}:{version}", "--yes"],
+                    ["cosign", "sign", chart_reference, "--yes"],
                     check=True,
                 )
 
