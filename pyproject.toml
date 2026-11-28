@@ -29,7 +29,7 @@ githubkit-schemas = "26.11.5"
 requests = { version = "2.33.0", optional = true }
 twine = { version = "6.2.0", optional = true }
 id = { version = "1.5.0", optional = true }
-applications-download = { version = "1.7.0", optional = true }
+applications-download = { version = "1.8.0", optional = true }
 jsonschema-validator-new = { version = "0.3.2", optional = true }
 debian-inspector = { version = "31.1.1", optional = true }
 multi-repo-automation = { version = "1.7.0", optional = true }

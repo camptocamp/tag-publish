@@ -10,7 +10,7 @@ import subprocess  # nosec
 import sys
 from pathlib import Path
 from re import Match, Pattern
-from typing import Any, TypedDict, cast, overload
+from typing import Any, TypedDict, cast
 
 import githubkit
 import githubkit_schemas.latest.models
@@ -232,51 +232,31 @@ def match(
     return None, None, value
 
 
-@overload
-def download_application(application_name: str, binary_filename: Path, *, extra: str = ...) -> Path: ...
-
-
-@overload
-def download_application(application_name: str, *, extra: str = ...) -> None: ...
-
-
-def download_application(
-    application_name: str, binary_filename: Path | None = None, *, extra: str = "helm"
-) -> Path | None:
+def download_application(application_name: str, *, extra: str = "helm") -> None:
     """
     Download the application if necessary, with the included version.
 
     Arguments:
         application_name: The GitHub `owner/name` of the application to download
-        binary_filename: The name of the binary in ~/.local/bin, only used to check if the
-            application is already installed
         extra: The name of the extra providing the `applications-download` dependency
 
     """
-    binary_full_filename = Path.home() / ".local" / "bin" / binary_filename if binary_filename else None
+    require_extra(extra, "applications_download")
+    # Imported here because it is an optional dependency provided by the `helm` and
+    # `docker` extras.
+    import applications_download  # noqa: PLC0415
 
-    if not binary_full_filename.exists() if binary_full_filename else True:
-        require_extra(extra, "applications_download")
-        # Imported here because it is an optional dependency provided by the `helm` and
-        # `docker` extras.
-        import applications_download  # noqa: PLC0415
+    applications = applications_download.Applications()
 
-        applications = applications_download.Applications(
-            applications_path=Path(__file__).parent / "applications.yaml",
-        )
-        applications.install("helm/chart-releaser")
+    versions_data = pkgutil.get_data("tag_publish", "versions.yaml")
 
-        versions_data = pkgutil.get_data("tag_publish", "versions.yaml")
+    assert versions_data is not None
+    versions = yaml.safe_load(versions_data)
 
-        assert versions_data is not None
-        versions = yaml.safe_load(versions_data)
-
-        applications.install(
-            application_name,
-            versions[application_name],
-        )
-
-    return binary_full_filename
+    applications.install(
+        application_name,
+        versions[application_name],
+    )
 
 
 class PublishedPayload(TypedDict, total=False):

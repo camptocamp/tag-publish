@@ -48,15 +48,15 @@ anyio = ">3.4.0"
 
 [[package]]
 name = "applications-download"
-version = "1.7.0"
+version = "1.8.0"
 description = "Tools used to publish Python packages, Docker images and Helm charts for GitHub tag and branch"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
 markers = "extra == \"docker\" or extra == \"helm\""
 files = [
-    {file = "applications_download-1.7.0-py3-none-any.whl", hash = "sha256:abafb58aab402442e0625dfdeae34a8eca228f338293b3dde6db89ce7df547b7"},
-    {file = "applications_download-1.7.0.tar.gz", hash = "sha256:cb3b8dd4efa9b102c8aed0dfee28fc01964803762b600dd6de05e512a8393620"},
+    {file = "applications_download-1.8.0-py3-none-any.whl", hash = "sha256:786112c84a2b0646d49f95545e73ce6da1f9c4dc7357284fc1f2512d8c2fef9f"},
+    {file = "applications_download-1.8.0.tar.gz", hash = "sha256:56b7d81ee0221862ac1f0bfd2a8b00bde652e9992f72e6748d3f78a3133539e9"},
 ]
 
 [package.dependencies]
@@ -2967,4 +2967,4 @@ validation = ["jsonschema-validator-new"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<4.0"
-content-hash = "64adde298b54103bf4c420e93e05a90e6b4a2b4e789d88bdbbb0aabaf5898a61"
+content-hash = "decd636c117e3bef5779424fcdaaae135d80f999db28bad478d4a476f581919c"
