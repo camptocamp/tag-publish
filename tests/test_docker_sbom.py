@@ -9,6 +9,8 @@ import tag_publish
 from tag_publish.configuration import DockerImage, DockerRepository
 from tag_publish.publish import docker
 
+_DIGEST = "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+
 
 class Calls:
     """Record the subprocess calls and the downloaded applications."""
@@ -19,7 +21,10 @@ class Calls:
 
     def run(self, command: list[str], *args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
         self.commands.append(list(command))
-        return subprocess.CompletedProcess(command, 0)
+        stdout = ""
+        if command[0] == "docker" and len(command) > 1 and command[1] == "push":
+            stdout = f"1.2.3: digest: {_DIGEST} size: 855\n"
+        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
 
     def download(self, application_name: str, *args: object, **kwargs: object) -> None:
         self.applications.append(application_name)
@@ -57,10 +62,11 @@ def test_docker_publishes_sbom_by_default(monkeypatch: pytest.MonkeyPatch) -> No
 
     cosign = [command for command in calls.commands if command[0] == "cosign"]
     assert len(cosign) == 1
-    assert cosign[0][0:2] == ["cosign", "attest-blob"]
-    assert "--type=application/vnd.cyclonedx+json" in cosign[0]
-    assert "--subject=ghcr.io/camptocamp/example:1.2.3" in cosign[0]
+    assert cosign[0][0:2] == ["cosign", "attest"]
+    assert "--type=cyclonedx" in cosign[0]
+    assert any(argument.startswith("--predicate=") for argument in cosign[0])
     assert "--yes" in cosign[0]
+    assert cosign[0][-1] == f"ghcr.io/camptocamp/example@{_DIGEST}"
 
 
 def test_docker_sbom_disabled(monkeypatch: pytest.MonkeyPatch) -> None:
