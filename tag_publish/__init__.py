@@ -261,7 +261,9 @@ def download_application(
         # `docker` extras.
         import applications_download  # noqa: PLC0415
 
-        applications = applications_download.Applications()
+        applications = applications_download.Applications(
+            applications_path=Path(__file__).parent / "applications.yaml",
+        )
         applications.install("helm/chart-releaser")
 
         versions_data = pkgutil.get_data("tag_publish", "versions.yaml")
